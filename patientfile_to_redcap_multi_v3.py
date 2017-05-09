@@ -33,7 +33,7 @@ lang_files = find('*.xls', '/Users/haroonpopal/Desktop/misc/lang_data_to_redcap/
 data = []
 
 # cols will be used to build dataframe off of specific Redcap headers
-cols = pd.read_csv('/Users/haroonpopal/Desktop/misc/lang_data_to_redcap/test_redcap_headers.csv')
+cols = pd.read_csv('/Users/haroonpopal/Desktop/misc/lang_data_to_redcap/redcap_headers.csv')
 
 
 single_test = pd.DataFrame()
