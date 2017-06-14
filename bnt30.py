@@ -118,10 +118,14 @@ for file in lang_files:  # Iterate through every found excel file
                         temp_list[0] = 'Semantic cue'
                     elif bnt30_relevant.loc[i]['Correct w/ph cue (1,0)'] == 1:
                         temp_list[0] = 'Phonemic cue'
-                    #elif bnt30_relevant.loc[i]['Correct w/mult choice (1,0)']:
-                        #temp_list[0] = 'Multiple choice'
                     else:
                         temp_list[0] = 'Not named'
+
+                    if bnt30_relevant.loc[i]['Correct w/mult choice (1,0)'] == 1:
+                        temp_list[6] = 'Correct'
+                    elif bnt30_relevant.loc[i]['Correct w/mult choice (1,0)'] == 0:
+                        temp_list[6] = 'Incorrect'
+
                     temp_df = pd.DataFrame([temp_list], columns = [col for col in cols.columns if 'bnt30' in col and '_'+str(i) in col[-2:]])
                 else:
                     if bnt30_relevant.loc[i]['Spont correct (1, 0)'] == 1:
@@ -132,10 +136,14 @@ for file in lang_files:  # Iterate through every found excel file
                         temp_list[0] = 'Semantic cue'
                     elif bnt30_relevant.loc[i]['Correct w/ph cue (1,0)'] == 1:
                         temp_list[0] = 'Phonemic cue'
-                    #elif bnt30_relevant.loc[i]['Correct w/mult choice (1,0)']:
-                        #temp_list[0] = 'Multiple choice'
                     else:
                         temp_list[0] = 'Not named'
+
+                    if bnt30_relevant.loc[i]['Correct w/mult choice (1,0)'] == 1:
+                        temp_list[6] = 'Correct'
+                    elif bnt30_relevant.loc[i]['Correct w/mult choice (1,0)'] == 0:
+                        temp_list[6] = 'Incorrect'
+
                     temp_df = pd.DataFrame([temp_list], columns = 
                             [col for col in cols.columns if 'bnt30' in col 
                             and '_'+str(i) in col])
