@@ -1,0 +1,102 @@
+import pandas as pd
+import csv
+import numpy as np
+import re
+
+import os, fnmatch
+
+
+###############################################################################
+##########################    New Version Updates   ###########################
+###############################################################################
+# Capture all subject lang files
+# Skip spreadsheets that have errors for missing tabs, or ill formatted headers
+# Create a seperate list for each error with failed subjects/files
+###############################################################################
+
+
+os.chdir('/Users/axs97/Desktop/lang_eval_to_redcap-alexs')
+
+def find(pattern, path):
+    result = []
+    for root, dirs, files in os.walk(path):
+        for name in files:
+            if fnmatch.fnmatch(name, pattern):
+                result.append(os.path.join(root, name))
+    return result
+
+#lang_files = find('*.xls', '/Users/axs97/Desktop/lang_eval_to_redcap-alexs/Patients/')
+lang_files = ['/Users/AXS97/Desktop/lang_eval_to_redcap-alexs/Patients/LastNameA_F/Adamian_Daniel/010815/adamian_lang_010815.xls']
+
+data = []
+
+# cols will be used to build dataframe off of specific Redcap headers
+cols = pd.read_csv('/Users/axs97/Desktop/lang_eval_to_redcap-alexs/redcap_headers.csv')
+
+
+single_test = pd.DataFrame()
+count = 0
+
+missing_lang_trans = []
+
+for file in lang_files:  # Iterate through every found excel file
+    single_test = pd.DataFrame()
+    
+    # Find subject's name from file path
+    single_test['Subject'] = []
+    m = re.search('/Users/axs97/Desktop/lang_eval_to_redcap-alexs/Patients/LastNameA_F/(.+?)/', file)
+    if m:
+        found = m.group(1)
+    m = re.search('/Users/axs97/Desktop/lang_eval_to_redcap-alexs/Patients/LastNameG_M/(.+?)/', file)
+    if m:
+        found = m.group(1)
+    m = re.search('/Users/axs97/Desktop/lang_eval_to_redcap-alexs/Patients/LastNameN_Z/(.+?)/', file)
+    if m:
+        found = m.group(1)
+    #single_test.ix[0, 'Subject'] = found
+    
+    xl = pd.ExcelFile(file)
+    sprdshts = xl.sheet_names  # see all sheet names
+    
+    ######################    Language Transcription    #########################    
+    if 'Lang transcriptions' in sprdshts:
+        lang_trans = pd.read_excel(file, 'Lang transcriptions')
+        headers = lang_trans.loc[3].tolist()
+        headers[0] = 'item'
+            
+        lang_prompts = ['1. Describe a typical Sunday', 
+        '2. Describe what you did for work, or, describe where you grew up, or, how did you meet your spouse?', 
+        '3. WAB picnic scene', 
+        '4. Sherman picture 1', 
+        '5. Sherman picture 2', 
+        '6. Brookshire picture sequences']
+        
+        #GET PROMPTS TO BE COLUMN HEADERS, THEN MATCH RESPONSES WITH HEADERS
+        
+            
+        lang_trans.columns = ['prompts', 'none', 'response']
+        
+        lang_items = lang_trans.index.tolist()
+        for i in lang_items:
+            transcription = []
+            trans_clear = lang_trans.fillna('')
+            if '1.' in trans_clear.loc[i]['response'] == True:
+                transcription[0] = lang_trans.at[i, 'response']
+            
+            elif '2.' in trans_clear.loc[i]['response'] == True:
+                transcription[1] = lang_trans.at[i, 'response']
+        
+            elif '3.' in trans_clear.loc[i]['response'] == True:
+                transcription[2] = lang_trans.at[i, 'response']
+
+            elif '4.' in trans_clear.loc[i]['response'] == True:
+                transcription[3] = lang_trans.at[i, 'response']
+
+            elif '5.' in trans_clear.loc[i]['response'] == True:
+                transcription[4] = lang_trans.at[i, 'response']
+            
+        cols = pd.read_csv('/Users/axs97/Desktop/lang_eval_to_redcap-alexs/redcap_headers.csv')
+        trans_columns = [col for col in cols.columns if 'lang_transcr_' in col]
+        trans_df = pd.DataFrame([lang_trans.loc[i].tolist()], trans_columns)
+        single_test = pd.concat([single_test, trans_df], axis=1)
+        
