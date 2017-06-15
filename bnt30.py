@@ -98,7 +98,7 @@ for file in lang_files:  # Iterate through every found excel file
             #'Verbatim response if incorrect after stim cue', 
             'Correct w/ph cue (1,0)', 
             #'Verbatim response if incorrect after ph cue', 
-            'Correct w/mult choice (1,0)', 'Response if incorrect']]
+            'Correct w/mult choice (1,0)', 'Mult choice prompts']]
             
             #items = bnt30_only_items[NaN].loc()
             bnt30_relevant = bnt30_relevant.set_index(bnt30_only_items['item'])
