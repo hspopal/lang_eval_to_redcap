@@ -73,12 +73,11 @@ for file in lang_files:  # Iterate through every found excel file
         
         #GET PROMPTS TO BE COLUMN HEADERS, THEN MATCH RESPONSES WITH HEADERS
         
-            
         lang_trans.columns = ['prompts', 'none', 'response']
         
         lang_items = lang_trans.index.tolist()
         for i in lang_items:
-            transcription = []
+            transcription = ['', '', '', '', '', '', '']
             trans_clear = lang_trans.fillna('')
             if '1.' in trans_clear.loc[i]['response'] == True:
                 transcription[0] = lang_trans.at[i, 'response']
@@ -95,6 +94,9 @@ for file in lang_files:  # Iterate through every found excel file
             elif '5.' in trans_clear.loc[i]['response'] == True:
                 transcription[4] = lang_trans.at[i, 'response']
             
+            else:
+                #add to "no response" list of subjects
+                
         cols = pd.read_csv('/Users/axs97/Desktop/lang_eval_to_redcap-alexs/redcap_headers.csv')
         trans_columns = [col for col in cols.columns if 'lang_transcr_' in col]
         trans_df = pd.DataFrame([lang_trans.loc[i].tolist()], trans_columns)
