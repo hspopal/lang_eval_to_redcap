@@ -69,55 +69,9 @@ for file in lang_files:  # Iterate through every found excel file
     sprdshts = xl.sheet_names  # see all sheet names
     
     ######################    Boston Naming Test 30    #########################    
-    if 'BNT30' in sprdshts:
-        bnt30 = pd.read_excel(file, 'BNT30')
-        headers = bnt30.loc[3].tolist()
-        headers[0] = 'item'
-        
-        relevant_headers = ['Spont correct (1, 0)', 
-        'Verbatim response if incorrect', 'Spont gesture if given (1, 0)', 
-        'Correct w/sem cue (1,0)', 'Verbatim response if incorrect after stim cue', 
-        'Correct w/ph cue (1,0)', 'Verbatim response if incorrect after ph cue', 
-        'Correct w/mult choice (1,0)', 'Response if incorrect']
-        
-        temp_head_errors = []
-        
-        for head in relevant_headers:
-            if head in headers:
-                continue
-            else:
-                temp_head_errors.append(head)
-        if not temp_head_errors:
-            bnt30_notNaN = bnt30[~pd.isnull(bnt30['Boston Naming Test'])]
-            bnt30_only_items = bnt30_notNaN[pd.isnull(bnt30['Boston Naming Test'].str.isnumeric())]
-            bnt30_only_items.columns = headers
-            
-            bnt30_relevant = bnt30_only_items[['Spont correct (1, 0)', 
-            'Verbatim response if incorrect', 'Spont gesture if given (1, 0)', 
-            'Correct w/sem cue (1,0)', 'Verbatim response if incorrect after stim cue', 
-            'Correct w/ph cue (1,0)', 'Verbatim response if incorrect after ph cue', 
-            'Correct w/mult choice (1,0)', 'Response if incorrect']]
-            
-            #items = bnt30_only_items[NaN].loc()
-            bnt30_relevant = bnt30_relevant.set_index(bnt30_only_items['item'])
-            
-            
-            items = bnt30_relevant.index.tolist()
-            for i in items: #  Placing the data to specific columns in the dataframe
-                if i < 10:
-                    temp_df = pd.DataFrame([bnt30_relevant.loc[i].tolist()], columns = 
-                                            [col for col in cols.columns if 'bnt30' in col 
-                                            and '_'+str(i) in col[-2:]])
-                else:
-                    temp_df = pd.DataFrame([bnt30_relevant.loc[i].tolist()], columns = 
-                            [col for col in cols.columns if 'bnt30' in col 
-                            and '_'+str(i) in col])
-                single_test = pd.concat([single_test, temp_df], axis=1)
-        else:
-            header_error_bnt30.append([file, temp_head_errors])
-    else:
-        missing_bnt30.append(file)
-    
+
+os.system('bnt30.py')
+#subprocess.call('bnt30.py')
 
     ##########################     WAB Commands     ############################    
     if 'WAB commands' in sprdshts:
@@ -229,11 +183,3 @@ final.to_csv('import_to_redcap.csv', encoding='utf-8')
 ## How can we get Redcap IDs for all subjects on aphasia?
 ## How can we get the correct event name? Use API to download all data and see what event should be next?
 ## Do all of the spreadsheets have the same template per test?
-
-
-
-
-
-
-
-
