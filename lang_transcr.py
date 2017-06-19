@@ -15,7 +15,9 @@ import os, fnmatch
 ###############################################################################
 
 
-os.chdir('/Users/axs97/Desktop/lang_eval_to_redcap-alexs')
+work_dir = '/Users/axs97/Desktop/lang_eval_to_redcap-alexs' 
+
+os.chdir(work_dir)
 
 def find(pattern, path):
     result = []
@@ -25,13 +27,13 @@ def find(pattern, path):
                 result.append(os.path.join(root, name))
     return result
 
-#lang_files = find('*.xls', '/Users/axs97/Desktop/lang_eval_to_redcap-alexs/Patients/')
-lang_files = ['/Users/AXS97/Desktop/lang_eval_to_redcap-alexs/Patients/LastNameA_F/Adamian_Daniel/010815/adamian_lang_010815.xls']
+#lang_files = find('*.xls', work_dir + '/Patients/')
+lang_files = [work_dir + '/Patients/LastNameA_F/Adamian_Daniel/010815/adamian_lang_010815.xls']
 
 data = []
 
 # cols will be used to build dataframe off of specific Redcap headers
-cols = pd.read_csv('/Users/axs97/Desktop/lang_eval_to_redcap-alexs/redcap_headers.csv')
+cols = pd.read_csv(work_dir + '/redcap_headers.csv')
 
 
 single_test = pd.DataFrame()
@@ -44,13 +46,13 @@ for file in lang_files:  # Iterate through every found excel file
     
     # Find subject's name from file path
     single_test['Subject'] = []
-    m = re.search('/Users/axs97/Desktop/lang_eval_to_redcap-alexs/Patients/LastNameA_F/(.+?)/', file)
+    m = re.search(work_dir + '/Patients/LastNameA_F/(.+?)/', file)
     if m:
         found = m.group(1)
-    m = re.search('/Users/axs97/Desktop/lang_eval_to_redcap-alexs/Patients/LastNameG_M/(.+?)/', file)
+    m = re.search(work_dir + '/Patients/LastNameG_M/(.+?)/', file)
     if m:
         found = m.group(1)
-    m = re.search('/Users/axs97/Desktop/lang_eval_to_redcap-alexs/Patients/LastNameN_Z/(.+?)/', file)
+    m = re.search(work_dir + '/Patients/LastNameN_Z/(.+?)/', file)
     if m:
         found = m.group(1)
     #single_test.ix[0, 'Subject'] = found
@@ -70,35 +72,28 @@ for file in lang_files:  # Iterate through every found excel file
         '4. Sherman picture 1', 
         '5. Sherman picture 2', 
         '6. Brookshire picture sequences']
-        
-        #GET PROMPTS TO BE COLUMN HEADERS, THEN MATCH RESPONSES WITH HEADERS
-        
+                
         lang_trans.columns = ['prompts', 'none', 'response']
         
         lang_items = lang_trans.index.tolist()
         for i in lang_items:
             transcription = ['', '', '', '', '', '', '']
             trans_clear = lang_trans.fillna('')
-            if '1.' in trans_clear.loc[i]['response'] == True:
+            if ('1.' in trans_clear.loc[i]['response']) == True:
                 transcription[0] = lang_trans.at[i, 'response']
             
-            elif '2.' in trans_clear.loc[i]['response'] == True:
+            elif ('2.' in trans_clear.loc[i]['response']) == True:
                 transcription[1] = lang_trans.at[i, 'response']
         
-            elif '3.' in trans_clear.loc[i]['response'] == True:
+            elif ('3.' in trans_clear.loc[i]['response']) == True:
                 transcription[2] = lang_trans.at[i, 'response']
 
-            elif '4.' in trans_clear.loc[i]['response'] == True:
+            elif ('4.' in trans_clear.loc[i]['response']) == True:
                 transcription[3] = lang_trans.at[i, 'response']
 
-            elif '5.' in trans_clear.loc[i]['response'] == True:
+            elif ('5.' in trans_clear.loc[i]['response']) == True:
                 transcription[4] = lang_trans.at[i, 'response']
-            
-            else:
-                #add to "no response" list of subjects
                 
-        cols = pd.read_csv('/Users/axs97/Desktop/lang_eval_to_redcap-alexs/redcap_headers.csv')
-        trans_columns = [col for col in cols.columns if 'lang_transcr_' in col]
-        trans_df = pd.DataFrame([lang_trans.loc[i].tolist()], trans_columns)
-        single_test = pd.concat([single_test, trans_df], axis=1)
-        
+            trans_columns = [col for col in cols.columns if 'lang_transcr_' in col]
+            trans_df = pd.DataFrame(transcription, trans_columns)
+            single_test = pd.concat([single_test, trans_df], axis=1)
