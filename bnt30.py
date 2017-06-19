@@ -152,5 +152,3 @@ for file in lang_files:  # Iterate through every found excel file
             header_error_bnt30.append([file, temp_head_errors])
     else:
         missing_bnt30.append(file)
-        
-print single_test
