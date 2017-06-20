@@ -81,19 +81,15 @@ for file in lang_files:  # Iterate through every found excel file
             trans_clear = lang_trans.fillna('')
             if ('1.' in trans_clear.loc[i]['response']) == True:
                 transcription[0] = lang_trans.at[i, 'response']
-            
-            elif ('2.' in trans_clear.loc[i]['response']) == True:
+            if ('2.' in trans_clear.loc[i]['response']) == True:
                 transcription[1] = lang_trans.at[i, 'response']
-        
-            elif ('3.' in trans_clear.loc[i]['response']) == True:
+            if ('3.' in trans_clear.loc[i]['response']) == True:
                 transcription[2] = lang_trans.at[i, 'response']
-
-            elif ('4.' in trans_clear.loc[i]['response']) == True:
+            if ('4.' in trans_clear.loc[i]['response']) == True:
                 transcription[3] = lang_trans.at[i, 'response']
-
-            elif ('5.' in trans_clear.loc[i]['response']) == True:
+            if ('5.' in trans_clear.loc[i]['response']) == True:
                 transcription[4] = lang_trans.at[i, 'response']
                 
-            trans_columns = [col for col in cols.columns if 'lang_transcr_' in col]
-            trans_df = pd.DataFrame(transcription, trans_columns)
+            trans_df = pd.DataFrame(data = [transcription], columns = [col for col in cols.columns if 'lang_transcr_' in col])
+
             single_test = pd.concat([single_test, trans_df], axis=1)
