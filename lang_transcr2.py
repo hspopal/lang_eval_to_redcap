@@ -39,7 +39,7 @@ cols = pd.read_csv(work_dir + '/redcap_headers.csv')
 single_test = pd.DataFrame()
 count = 0
 
-missing_lang_trans = []
+missing_transcr = []
 
 for file in lang_files:  # Iterate through every found excel file
     single_test = pd.DataFrame()
@@ -107,3 +107,6 @@ for file in lang_files:  # Iterate through every found excel file
             trans_df = pd.DataFrame(data = [transcription], columns = [col for col in cols.columns if 'lang_transcr_' in col])
 
             single_test = pd.concat([single_test, trans_df], axis=1)
+            
+    else:
+        missing_transcr.append(file)
