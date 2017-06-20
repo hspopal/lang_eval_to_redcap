@@ -79,14 +79,19 @@ for file in lang_files:  # Iterate through every found excel file
         for i in lang_items:
             transcription = ['', '', '', '', '', '', '']
             trans_clear = lang_trans.fillna('')
+
             if ('1.' in trans_clear.loc[i]['response']) == True:
                 transcription[0] = lang_trans.at[i, 'response']
+            
             if ('2.' in trans_clear.loc[i]['response']) == True:
                 transcription[1] = lang_trans.at[i, 'response']
+            
             if ('3.' in trans_clear.loc[i]['response']) == True:
                 transcription[2] = lang_trans.at[i, 'response']
+            
             if ('4.' in trans_clear.loc[i]['response']) == True:
                 transcription[3] = lang_trans.at[i, 'response']
+            
             if ('5.' in trans_clear.loc[i]['response']) == True:
                 transcription[4] = lang_trans.at[i, 'response']
                 
