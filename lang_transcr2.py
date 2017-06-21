@@ -82,27 +82,21 @@ for file in lang_files:  # Iterate through every found excel file
 
             if ('1.' in trans_clear.loc[i]['response']) == True:
                 response1 = lang_trans.at[i, 'response']
-                #transcription[0] = response1
 
             if ('2.' in trans_clear.loc[i]['response']) == True:
                 response2 = lang_trans.at[i, 'response']
-                #transcription[1] = response2
 
             if ('3.' in trans_clear.loc[i]['response']) == True:
                 response3 = lang_trans.at[i, 'response']
-                #transcription[2] = response3
 
             if ('4.' in trans_clear.loc[i]['response']) == True:
                 response4 = lang_trans.at[i, 'response']
-                #transcription[3] = response4
             
             if ('5.' in trans_clear.loc[i]['response']) == True:
                 response5 = lang_trans.at[i, 'response']
-                #transcription[4] = response5
                                 
             if ('6.' in trans_clear.loc[i]['response']) == True:
                 response6 = lang_trans.at[i, 'response']
-                #transcription[5] = response6
                                 
                 transcription =  [response1, response2, response3, response4, response5, response6, '']
 
