@@ -27,19 +27,21 @@ def find(pattern, path):
                 result.append(os.path.join(root, name))
     return result
 
-#lang_files = find('*.xls', work_dir + '/Patients/')
-lang_files = [work_dir + '/Patients/LastNameA_F/Adamian_Daniel/010815/adamian_lang_010815.xls']
+lang_files = find('*.xls', work_dir + '/Patients/')
+#lang_files = [work_dir + '/Patients/LastNameA_F/Adamian_Daniel/010815/adamian_lang_010815.xls']
 
 data = []
 
 # cols will be used to build dataframe off of specific Redcap headers
-cols = pd.read_csv(work_dir + '/redcap_headers.csv')
+redcap_cols = pd.read_csv(work_dir + '/redcap_headers.csv')
 
 
 single_test = pd.DataFrame()
 count = 0
 
 missing_transcr = []
+
+all_trans = pd.DataFrame()
 
 for file in lang_files:  # Iterate through every found excel file
     single_test = pd.DataFrame()
@@ -55,54 +57,76 @@ for file in lang_files:  # Iterate through every found excel file
     m = re.search(work_dir + '/Patients/LastNameN_Z/(.+?)/', file)
     if m:
         found = m.group(1)
-    #single_test.ix[0, 'Subject'] = found
+    single_test.ix[0, 'Subject'] = found
     
     xl = pd.ExcelFile(file)
     sprdshts = xl.sheet_names  # see all sheet names
     
     ######################    Language Transcription    #########################    
     if 'Lang transcriptions' in sprdshts:
-        lang_trans = pd.read_excel(file, 'Lang transcriptions')
-        headers = lang_trans.loc[3].tolist()
-        headers[0] = 'item'
+        lang_trans = pd.read_excel(file, 'Lang transcriptions', header=None)
+        #headers = lang_trans.loc[3].tolist()
+        #headers[0] = 'item'
             
-        lang_prompts = ['1. Describe a typical Sunday', 
-        '2. Describe what you did for work, or, describe where you grew up, or, how did you meet your spouse?', 
-        '3. WAB picnic scene', 
-        '4. Sherman picture 1', 
-        '5. Sherman picture 2', 
-        '6. Brookshire picture sequences']
+        #lang_prompts = ['1. Describe a typical Sunday', 
+        #'2. Describe what you did for work, or, describe where you grew up, or, how did you meet your spouse?', 
+        #'3. WAB picnic scene', 
+        #'4. Sherman picture 1', 
+        #'5. Sherman picture 2', 
+        #'6. Brookshire picture sequences']
                 
-        lang_trans.columns = ['prompts', 'none', 'response']
+        #lang_trans.columns = ['prompts', 'none', 'response']
         
-        lang_items = lang_trans.index.tolist()
-        for i in lang_items:
-            #transcription = ['', '', '', '', '', '', '']
-            trans_clear = lang_trans.fillna('')
-
-            if ('1.' in trans_clear.loc[i]['response']) == True:
-                response1 = lang_trans.at[i, 'response']
-
-            if ('2.' in trans_clear.loc[i]['response']) == True:
-                response2 = lang_trans.at[i, 'response']
-
-            if ('3.' in trans_clear.loc[i]['response']) == True:
-                response3 = lang_trans.at[i, 'response']
-
-            if ('4.' in trans_clear.loc[i]['response']) == True:
-                response4 = lang_trans.at[i, 'response']
+        if lang_trans.empty == True:
+            missing_transcr.append(file)
+        else:   
+            lang_items = lang_trans.index.tolist()
             
-            if ('5.' in trans_clear.loc[i]['response']) == True:
-                response5 = lang_trans.at[i, 'response']
-                                
-            if ('6.' in trans_clear.loc[i]['response']) == True:
-                response6 = lang_trans.at[i, 'response']
-                                
-                transcription =  [response1, response2, response3, response4, response5, response6, '']
-
-            trans_df = pd.DataFrame(data = [transcription], columns = [col for col in cols.columns if 'lang_transcr_' in col])
-
-        #single_test = pd.concat([single_test, trans_df], axis=1)
+            trans_clear = lang_trans.fillna('')
+            trans_clear = trans_clear.drop(trans_clear.columns[0], axis=1)
+    
+            if trans_clear.empty == True:
+                missing_transcr.append(file)
+    
+            else:                        
+                mask = np.column_stack([trans_clear[col].str.contains(r"1.", na=False) for col in trans_clear])
+                response1 = trans_clear.loc[mask.any(axis=1)]
+                
+                mask = np.column_stack([trans_clear[col].str.contains(r"2.", na=False) for col in trans_clear])
+                response2 = trans_clear.loc[mask.any(axis=1)]
+                
+                mask = np.column_stack([trans_clear[col].str.contains(r"3.", na=False) for col in trans_clear])
+                response3 = trans_clear.loc[mask.any(axis=1)]
+                
+                mask = np.column_stack([trans_clear[col].str.contains(r"4.", na=False) for col in trans_clear])
+                response4 = trans_clear.loc[mask.any(axis=1)]
+                
+                mask = np.column_stack([trans_clear[col].str.contains(r"5.", na=False) for col in trans_clear])
+                response5 = trans_clear.loc[mask.any(axis=1)]
+                
+                mask = np.column_stack([trans_clear[col].str.contains(r"6.", na=False) for col in trans_clear])
+                response6 = trans_clear.loc[mask.any(axis=1)]
+                
+                transcription = ['', '', '', '', '', '', '']
+                if '1.' in str(response1.iloc[:,-1]):
+                    transcription[0] = response1.iloc[:,-1]
+                if '2.' in str(response2.iloc[:,-1]):
+                    transcription[1] = response2.iloc[:,-1]
+                if '3.' in str(response3.iloc[:,-1]):
+                    transcription[2] = response3.iloc[:,-1]
+                if '4.' in str(response4.iloc[:,-1]):
+                    transcription[3] = response4.iloc[:,-1]
+                if '5.' in str(response5.iloc[:,-1]):
+                    transcription[4] = response5.iloc[:,-1]
+                if '6.' in str(response6.iloc[:,-1]):
+                    transcription[5] = response6.iloc[:,-1]
+                        
+                trans_df = pd.DataFrame(data = [transcription], columns = [col for col in redcap_cols.columns if 'lang_transcr_' in col])
+                single_test = pd.concat([single_test, trans_df], axis=1)
             
     else:
         missing_transcr.append(file)
+
+    all_trans = all_trans.append(single_test)
+#all_test = pd.concat([all_test], axis=1)
+all_trans.to_csv('Lang_trans_Final.csv', encoding='utf-8')
