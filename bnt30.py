@@ -25,8 +25,8 @@ def find(pattern, path):
                 result.append(os.path.join(root, name))
     return result
 
-#lang_files = find('*.xls', work_dir + '/Patients/')
-lang_files = [work_dir + '/Patients/LastNameA_F/Adamian_Daniel/010815/adamian_lang_010815.xls']
+lang_files = find('*.xls', work_dir + '/Patients/')
+#lang_files = [work_dir + '/Patients/LastNameA_F/Adamian_Daniel/010815/adamian_lang_010815.xls']
 
 
 
@@ -49,6 +49,8 @@ header_error_bnt30 = []
 header_error_wab_reading = []
 
 
+all_test = pd.DataFrame()
+
 for file in lang_files:  # Iterate through every found excel file
     single_test = pd.DataFrame()
     
@@ -63,7 +65,7 @@ for file in lang_files:  # Iterate through every found excel file
     m = re.search(work_dir + '/Patients/LastNameN_Z/(.+?)/', file)
     if m:
         found = m.group(1)
-    #single_test.ix[0, 'Subject'] = found
+    single_test.ix[0, 'Subject'] = found
     
     xl = pd.ExcelFile(file)
     sprdshts = xl.sheet_names  # see all sheet names
@@ -95,10 +97,11 @@ for file in lang_files:  # Iterate through every found excel file
             bnt30_relevant = bnt30_only_items[['Spont correct (1, 0)', 
             'Verbatim response if incorrect', 'Spont gesture if given (1, 0)', 
             'Correct w/sem cue (1,0)', 
-            #'Verbatim response if incorrect after stim cue', 
+            'Verbatim response if incorrect after stim cue', 
             'Correct w/ph cue (1,0)', 
-            #'Verbatim response if incorrect after ph cue', 
-            'Correct w/mult choice (1,0)', 'Mult choice prompts']]
+            'Verbatim response if incorrect after ph cue', 
+            'Correct w/mult choice (1,0)', 'Mult choice prompts',
+            'Response if incorrect']]
             
             #items = bnt30_only_items[NaN].loc()
             bnt30_relevant = bnt30_relevant.set_index(bnt30_only_items['item'])
@@ -106,14 +109,12 @@ for file in lang_files:  # Iterate through every found excel file
             
             items = bnt30_relevant.index.tolist()
             for i in items: #  Placing the data to specific columns in the dataframe
-                temp_list = bnt30_relevant.loc[i].tolist()
+                temp_list = ['', '', '', '', '', '', '', '']
                 if i < 10:    
                     # replace first value with correct string
                     test = 'bnt30_response_' + str(i)
                     if bnt30_relevant.loc[i]['Spont correct (1, 0)'] == 1:
                         temp_list[0] = 'Spontaneous'
-                    #elif bnt30_relevant.loc[i]['Spont gesture if given (1, 0)'] == 1:
-                        #temp_list[0].replace(1, "Spontaneous gesture")
                     elif bnt30_relevant.loc[i]['Correct w/sem cue (1,0)'] == 1:
                         temp_list[0] = 'Semantic cue'
                     elif bnt30_relevant.loc[i]['Correct w/ph cue (1,0)'] == 1:
@@ -121,17 +122,29 @@ for file in lang_files:  # Iterate through every found excel file
                     else:
                         temp_list[0] = 'Not named'
 
+                    if bnt30_relevant.loc[i]['Spont correct (1, 0)'] == 0:
+                        temp_list[1] = bnt30_relevant.loc[i]['Verbatim response if incorrect']
+                        temp_list[2] = bnt30_relevant.loc[i]['Spont gesture if given (1, 0)']
+                    
+                    if bnt30_relevant.loc[i]['Correct w/sem cue (1,0)'] == 0:
+                        temp_list[3] = bnt30_relevant.loc[i]['Verbatim response if incorrect after stim cue']
+                    
+                    if bnt30_relevant.loc[i]['Correct w/ph cue (1,0)'] == 0:
+                        temp_list[4] = bnt30_relevant.loc[i]['Verbatim response if incorrect after ph cue']
+
                     if bnt30_relevant.loc[i]['Correct w/mult choice (1,0)'] == 1:
                         temp_list[6] = 'Correct'
                     elif bnt30_relevant.loc[i]['Correct w/mult choice (1,0)'] == 0:
                         temp_list[6] = 'Incorrect'
+                        if bnt30_relevant.loc[i]['Response if incorrect'] != '':
+                            temp_list[7] = bnt30_relevant.loc[i]['Response if incorrect']
+                        else:
+                            temp_list[7] = 'Check excel sprdsht'
 
                     temp_df = pd.DataFrame([temp_list], columns = [col for col in cols.columns if 'bnt30' in col and '_'+str(i) in col[-2:]])
                 else:
                     if bnt30_relevant.loc[i]['Spont correct (1, 0)'] == 1:
                         temp_list[0] = 'Spontaneous'
-                    #elif bnt30_relevant.loc[i]['Spont gesture if given (1, 0)'] == 1:
-                        #temp_list[0].replace(1, "Spontaneous gesture")
                     elif bnt30_relevant.loc[i]['Correct w/sem cue (1,0)'] == 1:
                         temp_list[0] = 'Semantic cue'
                     elif bnt30_relevant.loc[i]['Correct w/ph cue (1,0)'] == 1:
@@ -139,10 +152,24 @@ for file in lang_files:  # Iterate through every found excel file
                     else:
                         temp_list[0] = 'Not named'
 
+                    if bnt30_relevant.loc[i]['Spont correct (1, 0)'] == 0:
+                        temp_list[1] = bnt30_relevant.loc[i]['Verbatim response if incorrect']
+                        temp_list[2] = bnt30_relevant.loc[i]['Spont gesture if given (1, 0)']
+                    
+                    if bnt30_relevant.loc[i]['Correct w/sem cue (1,0)'] == 0:
+                        temp_list[3] = bnt30_relevant.loc[i]['Verbatim response if incorrect after stim cue']
+                    
+                    if bnt30_relevant.loc[i]['Correct w/ph cue (1,0)'] == 0:
+                        temp_list[4] = bnt30_relevant.loc[i]['Verbatim response if incorrect after ph cue']
+
                     if bnt30_relevant.loc[i]['Correct w/mult choice (1,0)'] == 1:
                         temp_list[6] = 'Correct'
                     elif bnt30_relevant.loc[i]['Correct w/mult choice (1,0)'] == 0:
                         temp_list[6] = 'Incorrect'
+                        if bnt30_relevant.loc[i]['Response if incorrect'] != '':
+                            temp_list[7] = bnt30_relevant.loc[i]['Response if incorrect']
+                        else:
+                            temp_list[7] = 'Check excel sprdsht'
 
                     temp_df = pd.DataFrame([temp_list], columns = 
                             [col for col in cols.columns if 'bnt30' in col 
@@ -152,3 +179,6 @@ for file in lang_files:  # Iterate through every found excel file
             header_error_bnt30.append([file, temp_head_errors])
     else:
         missing_bnt30.append(file)
+    all_test = all_test.append(single_test)
+#all_test = pd.concat([all_test], axis=1)
+all_test.to_csv('BNT30-Final.csv', encoding='utf-8')
