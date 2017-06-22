@@ -77,30 +77,44 @@ for file in lang_files:  # Iterate through every found excel file
         
         lang_items = lang_trans.index.tolist()
         for i in lang_items:
-            transcription = ['', '', '', '', '', '', '']
+            #transcription = ['', '', '', '', '', '', '']
             trans_clear = lang_trans.fillna('')
 
             if ('1.' in trans_clear.loc[i]['response']) == True:
-                transcription[0] = lang_trans.at[i, 'response']
+                response1 = lang_trans.at[i, 'response']
+            else:
+                response1 = ''
 
             if ('2.' in trans_clear.loc[i]['response']) == True:
-                transcription[1] = lang_trans.at[i, 'response']
-
+                response2 = lang_trans.at[i, 'response']
+            else:
+                response2 = ''
+                
             if ('3.' in trans_clear.loc[i]['response']) == True:
-                transcription[2] = lang_trans.at[i, 'response']
-
+                response3 = lang_trans.at[i, 'response']
+            else:
+                response3 = ''
+                
             if ('4.' in trans_clear.loc[i]['response']) == True:
-                transcription[3] = lang_trans.at[i, 'response']
-
+                response4 = lang_trans.at[i, 'response']
+            else:
+                response4 = ''
+                
             if ('5.' in trans_clear.loc[i]['response']) == True:
-                transcription[4] = lang_trans.at[i, 'response']
-
+                response5 = lang_trans.at[i, 'response']
+            else:
+                response5 = ''
+                                    
             if ('6.' in trans_clear.loc[i]['response']) == True:
-                response6 = lang_trans.at[i, 'response']                
+                response6 = lang_trans.at[i, 'response']
+            else:
+                response6 = ''
+                                
+        transcription =  [response1, response2, response3, response4, response5, response6, '']
 
-            trans_df = pd.DataFrame(data = [transcription], columns = [col for col in cols.columns if 'lang_transcr_' in col])
+        trans_df = pd.DataFrame(data = [transcription], columns = [col for col in cols.columns if 'lang_transcr_' in col])
 
-            single_test = pd.concat([single_test, trans_df], axis=1)
+        single_test = pd.concat([single_test, trans_df], axis=1)
             
     else:
         missing_transcr.append(file)
