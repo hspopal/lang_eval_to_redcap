@@ -44,6 +44,9 @@ missing_wab_reading = []
 header_error_bnt30 = []
 header_error_wab_reading = []
 
+missing_transcr = []
+transcr_response_error = []
+
 all_test = pd.DataFrame()
 
 for file in lang_files:  # Iterate through every found excel file
