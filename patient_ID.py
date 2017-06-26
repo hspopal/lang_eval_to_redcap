@@ -88,7 +88,9 @@ else:
     else:
         ID['date'] = ID['raw'].str.extract('/(\d\d\d\d\d\d)/', expand=True)
         if ID['date'].isnull:
-            ID_error_date.append(file)
+            ID['date'] = str(ID['raw'].astype(str).str[-10:-4])
+            if ID['date'].isnull:
+                ID_error_date.append(file)
         else:
             ID_lower = ID['first_initial'] + (ID['last_name'].astype
                                               (str).str[:3] + '_')
