@@ -25,8 +25,8 @@ def find(pattern, path):
 
 lang_files = find('*.xls', work_dir + '/Patients/')
 # lang_files = [work_dir +
-              # '/Patients/LastNameA_F/Adamian_Daniel'
-              #' /010815/adamian_lang_010815.xls']
+# '/Patients/LastNameA_F/Adamian_Daniel'
+# '/010815/adamian_lang_010815.xls']
 
 data = []
 
@@ -75,8 +75,8 @@ for file in lang_files:  # Iterate through every found excel file
 
     raw = str(file[67:])
     raw_ID.append(raw)
-  
-ID = pd.DataFrame(raw_ID, columns = ['raw'])
+
+ID = pd.DataFrame(raw_ID, columns=['raw'])
 ID['first_name'] = ID['raw'].str.extract('/.+?_(.*)/\d', expand=True)
 if ID['first_name'].isnull:
     ID_error_firstname.append(file)
@@ -90,5 +90,7 @@ else:
         if ID['date'].isnull:
             ID_error_date.append(file)
         else:
-            ID_lower = ID['first_initial'] + ID['last_name'].astype(str).str[:3] + '_' + ID['date']
+            ID_lower = ID['first_initial'] + (ID['last_name'].astype
+                                              (str).str[:3] + '_' + ID
+                                              ['date'])
             ID['ID'] = ID_lower.str.upper()
