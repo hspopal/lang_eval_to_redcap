@@ -91,6 +91,5 @@ else:
             ID_error_date.append(file)
         else:
             ID_lower = ID['first_initial'] + (ID['last_name'].astype
-                                              (str).str[:3] + '_' + ID
-                                              ['date'])
+                                              (str).str[:3] + '_')
             ID['ID'] = ID_lower.str.upper()
