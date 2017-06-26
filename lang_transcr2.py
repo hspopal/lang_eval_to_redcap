@@ -37,7 +37,7 @@ single_test = pd.DataFrame()
 count = 0
 
 missing_transcr = []
-response_error = []
+transcr_response_error = []
 
 all_trans = pd.DataFrame()
 
@@ -83,7 +83,7 @@ for file in lang_files:  # Iterate through every found excel file
                                             col in trans_clear])
                 response1 = trans_clear.loc[mask.any(axis=1)]
                 if '2.' or '3.' or '4.' or '5.' or '6.' in response1:
-                    response_error.append(file)
+                    transcr_response_error.append(file)
 
                 mask = np.column_stack(
                                         [trans_clear[col].str.startswith
@@ -91,7 +91,7 @@ for file in lang_files:  # Iterate through every found excel file
                                             col in trans_clear])
                 response2 = trans_clear.loc[mask.any(axis=1)]
                 if '1.' or '3.' or '4.' or '5.' or '6.' in response2:
-                    response_error.append(file)
+                    transcr_response_error.append(file)
 
                 mask = np.column_stack(
                                         [trans_clear[col].str.startswith
@@ -99,7 +99,7 @@ for file in lang_files:  # Iterate through every found excel file
                                             col in trans_clear])
                 response3 = trans_clear.loc[mask.any(axis=1)]
                 if '1.' or '2.' or '4.' or '5.' or '6.' in response3:
-                    response_error.append(file)
+                    transcr_response_error.append(file)
 
                 mask = np.column_stack(
                                         [trans_clear[col].str.startswith
@@ -107,7 +107,7 @@ for file in lang_files:  # Iterate through every found excel file
                                             col in trans_clear])
                 response4 = trans_clear.loc[mask.any(axis=1)]
                 if '1.' or '2.' or '3.' or '5.' or '6.' in response4:
-                    response_error.append(file)
+                    transcr_response_error.append(file)
 
                 mask = np.column_stack(
                                         [trans_clear[col].str.startswith
@@ -115,7 +115,7 @@ for file in lang_files:  # Iterate through every found excel file
                                             col in trans_clear])
                 response5 = trans_clear.loc[mask.any(axis=1)]
                 if '1.' or '2.' or '3.' or '4.' or '6.' in response5:
-                    response_error.append(file)
+                    transcr_response_error.append(file)
 
                 mask = np.column_stack(
                                         [trans_clear[col].str.startswith
@@ -123,7 +123,7 @@ for file in lang_files:  # Iterate through every found excel file
                                             col in trans_clear])
                 response6 = trans_clear.loc[mask.any(axis=1)]
                 if '1.' or '2.' or '3.' or '4.' or '5.' in response6:
-                    response_error.append(file)
+                    transcr_response_error.append(file)
 
                 transcription = ['', '', '', '', '', '', '']
                 if '1.' in str(response1.iloc[:, -1]):
