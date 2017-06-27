@@ -74,7 +74,7 @@ for file in lang_files:  # Iterate through every found excel file
     xl = pd.ExcelFile(file)
     sprdshts = xl.sheet_names  # see all sheet names
 
-    # Spelling
+    # PPT
     if 'PPT' in sprdshts:
         ppt = pd.read_excel(file, 'PPT', skiprows=[1, 2, 3, 4])
 
