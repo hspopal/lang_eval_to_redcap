@@ -111,7 +111,8 @@ for file in lang_files:  # Iterate through every found excel file
                 temp_list[3] = ppt_clear.loc[i]['1 written word, 2 pictures']
                 temp_list[4] = ppt_clear.loc[i]['1 picture, 2 written words']
                 temp_list[5] = ppt_clear.loc[i]['1 spoken word, 2 pictures']
-                temp_list[6] = ppt_clear.loc[i]['1 spoken word, 2 written words']
+                temp_list[6] = (ppt_clear.loc[i]
+                                ['1 spoken word, 2 written words'])
 
                 ppt_df = pd.DataFrame([temp_list])  # ,
                                 # columns=[col for col in cols.columns
