@@ -93,7 +93,7 @@ for file in lang_files:  # Iterate through every found excel file
             missing_verb.append(file)
         else:
             verb_clear = (verb.drop(verb.
-                                   columns[0:2], axis=1).fillna(''))
+                                    columns[0:2], axis=1).fillna(''))
             verb_clear.columns = relevant_headers
             verb_items = verb.index.tolist()
 
@@ -115,7 +115,7 @@ for file in lang_files:  # Iterate through every found excel file
                     temp_list[0] = 'n/a'
                     temp_list[1] = ''
                     temp_list[2] = ''
-                    
+
                 ppt_df = pd.DataFrame([temp_list])  # ,
                                 # columns=[col for col in cols.columns
                                             # if 'spelling' in col and
