@@ -31,26 +31,18 @@ lang_files = [work_dir +
 data = []
 
 # cols will be used to build dataframe off of specific Redcap headers
-cols = pd.read_csv(work_dir + '/redcap_headers.csv')
+redcap_cols = pd.read_csv(work_dir + '/redcap_headers.csv')
 
 single_test = pd.DataFrame()
 count = 0
 
-missing_bnt30 = []
-missing_wab_commands = []
-missing_wab_repetition = []
-missing_wab_reading = []
-
-header_error_bnt30 = []
-header_error_wab_reading = []
-
 missing_transcr = []
 transcr_response_error = []
 
-missing_spelling = []
-header_error_spelling = []
+missing_writ_sample = []
+sample_error = []
 
-all_test = pd.DataFrame()
+all_trans = pd.DataFrame()
 
 for file in lang_files:  # Iterate through every found excel file
     single_test = pd.DataFrame()
@@ -71,46 +63,74 @@ for file in lang_files:  # Iterate through every found excel file
     xl = pd.ExcelFile(file)
     sprdshts = xl.sheet_names  # see all sheet names
 
-    # Spelling
-    if 'Spelling' in sprdshts:
-        spelling = pd.read_excel(file, 'Spelling', skiprows=[1, 2, 3, 4, 5])
+    # Writing Sample
 
-        relevant_headers = [
-            'words',
-            'correct/incorrect (0/1)',
-            'response if incorrect'
-            ]
+    if 'Writing Samples' in sprdshts:
+        writ_sample = pd.read_excel(file, 'Writing Samples', header=None)
 
-        temp_head_errors = []
-
-        if spelling.empty:
-            missing_spelling.append(file)
+        if writ_sample.empty:
+            missing_writ_sample.append(file)
         else:
-            spelling_clear = spelling.drop(spelling.
-                                           columns[0:2], axis=1).fillna('')
-            spelling_clear.columns = relevant_headers
-            spelling_items = spelling.index.tolist()
+            sample_items = writ_sample.index.tolist()
 
-            temp_list = ['', '']
+            writ_clear = writ_sample.fillna('')
+            writ_clear = writ_clear.drop(writ_clear.columns[0], axis=1)
 
-            # replace first value with correct string
-            for i in spelling_items:
-                if spelling_clear.loc[i]['correct/incorrect (0/1)'] == 1:
-                    temp_list[0] = 'correct'
-                    temp_list[1] = ''
+            if writ_clear.empty:
+                missing_writ_sample.append(file)
 
-                elif spelling_clear.loc[i]['correct/incorrect (0/1)'] == 0:
-                    temp_list[0] = 'incorrect'
-                    temp_list[1] = ((spelling_clear.loc[i]
-                                    ['response if incorrect']))
-                spelling_df = pd.DataFrame([temp_list])  # ,
-                                # columns=[col for col in cols.columns
-                                            # if 'spelling' in col and
-                                            # '_'+str(i) in col[-2:]])
+            else:
+                mask = np.column_stack(
+                                        [writ_clear[col].str.startswith
+                                            (r"1.", na=False) for
+                                            col in writ_clear])
+                response1 = writ_clear.loc[mask.any(axis=1)]
+                if '2.' or '3.' or '4.' in response1:
+                    sample_error.append(file)
 
-                single_test = pd.concat([single_test, spelling_df], axis=1)
+                mask = np.column_stack(
+                                        [writ_clear[col].str.startswith
+                                            (r"2.", na=False) for
+                                            col in writ_clear])
+                response2 = writ_clear.loc[mask.any(axis=1)]
+                if '1.' or '3.' or '4.' in response2:
+                    sample_error.append(file)
+
+                mask = np.column_stack(
+                                        [writ_clear[col].str.startswith
+                                            (r"3.", na=False) for
+                                            col in writ_clear])
+                response3 = writ_clear.loc[mask.any(axis=1)]
+                if '1.' or '2.' or '4.' in response3:
+                    sample_error.append(file)
+
+                mask = np.column_stack(
+                                        [writ_clear[col].str.startswith
+                                            (r"4.", na=False) for
+                                            col in writ_clear])
+                response4 = writ_clear.loc[mask.any(axis=1)]
+                if '1.' or '2.' or '3.' in response4:
+                    sample_error.append(file)
+
+                sample = ['', '', '', '', '', '']
+                if '1.' in str(response1.iloc[:, -1]):
+                    sample[0] = response1.iloc[:, -1]
+                if '2.' in str(response2.iloc[:, -1]):
+                    sample[1] = response2.iloc[:, -1]
+                if '3.' in str(response3.iloc[:, -1]):
+                    sample[2] = response3.iloc[:, -1]
+                if '4.' in str(response4.iloc[:, -1]):
+                    sample[3] = response4.iloc[:, -1]
+
+                trans_df = pd.DataFrame(data=[sample],
+                                        columns=[col for col in
+                                        redcap_cols.columns
+                                        if '' in col])
+                single_test = pd.concat([single_test, trans_df], axis=1)
+
     else:
-        missing_spelling.append(file)
+        missing_transcr.append(file)
 
-all_test = all_test.append(single_test)
-all_test.to_csv('spelling-Final.csv', encoding='utf-8')
+    all_trans = all_trans.append(single_test)
+# all_test = pd.concat([all_test], axis=1)
+all_trans.to_csv('writ_sample_Final.csv', encoding='utf-8')
