@@ -23,7 +23,7 @@ def find(pattern, path):
                 result.append(os.path.join(root, name))
     return result
 
-#lang_files = find('*.xls', work_dir + '/Patients/')
+# lang_files = find('*.xls', work_dir + '/Patients/')
 lang_files = [work_dir +
               '/Patients/LastNameA_F/Adamian_Daniel'
               '/010815/adamian_lang_010815.xls']
@@ -86,8 +86,9 @@ for file in lang_files:  # Iterate through every found excel file
         if spelling.empty:
             missing_spelling.append(file)
         else:
-            spelling_clear = spelling.drop(spelling.columns[0:2], axis=1).fillna('')
-            spelling_clear.columns = relevant_headers           
+            spelling_clear = spelling.drop(spelling.
+                                           columns[0:2], axis=1).fillna('')
+            spelling_clear.columns = relevant_headers
             spelling_items = spelling.index.tolist()
 
             temp_list = ['', '']
@@ -97,16 +98,16 @@ for file in lang_files:  # Iterate through every found excel file
                 if spelling_clear.loc[i]['correct/incorrect (0/1)'] == 1:
                     temp_list[0] = 'correct'
                     temp_list[1] = ''
-                
+
                 elif spelling_clear.loc[i]['correct/incorrect (0/1)'] == 0:
                     temp_list[0] = 'incorrect'
                     temp_list[1] = ((spelling_clear.loc[i]
                                     ['response if incorrect']))
-                spelling_df = pd.DataFrame([temp_list]) #,
+                spelling_df = pd.DataFrame([temp_list])  # ,
                                 # columns=[col for col in cols.columns
                                             # if 'spelling' in col and
                                             # '_'+str(i) in col[-2:]])
-    
+
                 single_test = pd.concat([single_test, spelling_df], axis=1)
     else:
         missing_spelling.append(file)
