@@ -49,7 +49,7 @@ transcr_response_error = []
 
 missing_nat = []
 
-missing_CSB_WPM = []
+missing_csb_wpm = []
 
 all_test = pd.DataFrame()
 
@@ -87,31 +87,37 @@ for file in lang_files:  # Iterate through every found excel file
         csb.columns = headers
 
         csb_clear = csb.drop(['none2', 'none3', 'none'], axis=1)
-        
-        d_animals = csb_clear.iloc[[0, 1, 2],:].reset_index()
-        f_animals = csb_clear.iloc[[3, 4, 5],:].reset_index()
-        birds = csb_clear.iloc[[6, 7, 8],:].reset_index()
-        fruits = csb_clear.iloc[[9, 10, 11],:].reset_index()
-        vehicles = csb_clear.iloc[[12, 13, 14],:].reset_index()
-        l_house_obj = csb_clear.iloc[[15, 16, 17],:].reset_index()
-        h_house_obj = csb_clear.iloc[[18, 19, 20],:].reset_index()
-        tools = csb_clear.iloc[[21, 22, 23],:].reset_index()
 
-        csb_all = pd.DataFrame()
-        csb_types = [d_animals, f_animals, birds, fruits, vehicles, l_house_obj, h_house_obj, tools]
-        for i in csb_types:
-            for x in i.columns:
-                temp_list = ['', '', '']
-                temp_list[0] = i.loc[0][x]
-                if i.loc[1][x] == 1:
-                    temp_list[1] = 'correct'
-                elif i.loc[1][x] == 0:
-                    temp_list[1] = 'incorrect'
-                    temp_list[2] = i.loc[2][x]
+        if csb_clear['1'][1] != (1 or 0):
+            missing_csb_wpm.append(file)
+        else:
+            d_animals = csb_clear.iloc[[0, 1, 2],:].reset_index()
+            f_animals = csb_clear.iloc[[3, 4, 5],:].reset_index()
+            birds = csb_clear.iloc[[6, 7, 8],:].reset_index()
+            fruits = csb_clear.iloc[[9, 10, 11],:].reset_index()
+            vehicles = csb_clear.iloc[[12, 13, 14],:].reset_index()
+            l_house_obj = csb_clear.iloc[[15, 16, 17],:].reset_index()
+            h_house_obj = csb_clear.iloc[[18, 19, 20],:].reset_index()
+            tools = csb_clear.iloc[[21, 22, 23],:].reset_index()
 
-                type_df = pd.DataFrame([temp_list])  # ,
-                                   # columns=[col for col in cols.columns
-                                            # if 'bnt30' in col and
-                                            # '_'+str(i) in col[-2:]])
-                single_test = pd.concat([single_test,
-                                         type_df], axis=1)
+            csb_all = pd.DataFrame()
+            csb_types = [d_animals, f_animals, birds, fruits, vehicles, l_house_obj, h_house_obj, tools]
+            for i in csb_types:
+                for x in i.columns:
+                    temp_list = ['', '', '']
+                    temp_list[0] = i.loc[0][x]
+                    if i.loc[1][x] == 1:
+                        temp_list[1] = 'correct'
+                    elif i.loc[1][x] == 0:
+                        temp_list[1] = 'incorrect'
+                        temp_list[2] = i.loc[2][x]
+
+                    type_df = pd.DataFrame([temp_list])  # ,
+                                    # columns=[col for col in cols.columns
+                                                # if 'bnt30' in col and
+                                                # '_'+str(i) in col[-2:]])
+                    single_test = pd.concat([single_test,
+                                            type_df], axis=1)
+    else:
+        missing_csb_wpm.append(file)
+            
