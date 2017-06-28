@@ -140,3 +140,5 @@ for file in lang_files:  # Iterate through every found excel file
                                             # '_'+str(i) in col[-2:]])
 
             single_test = pd.concat([single_test, temp_df], axis=1)
+    else:
+        missing_nat.append(file)
