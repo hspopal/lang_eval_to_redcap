@@ -64,6 +64,8 @@ missing_nat = []
 
 missing_aprax_screen = []
 
+missing_csb_wpm = []
+
 all_test = pd.DataFrame()
 
 for file in lang_files:  # Iterate through every found excel file
