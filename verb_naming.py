@@ -109,7 +109,10 @@ for file in lang_files:  # Iterate through every found excel file
                 elif verb_clear.loc[i]['spont correct'] == 0:
                     temp_list[0] = 'incorrect'
                     temp_list[1] = verb_clear.loc[i]['response if incorrect']
-                    temp_list[2] = verb_clear.loc[i]['correct after ph cue']
+                    if verb_clear.loc[i]['correct after ph cue'] == 1:
+                        temp_list[2] = 'correct'
+                    elif verb_clear.loc[i]['correct after ph cue'] == 0:
+                        temp_list[2] = 'incorrect'
 
                 else:
                     temp_list[0] = 'n/a'
