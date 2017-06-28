@@ -60,6 +60,10 @@ header_error_ppt = []
 missing_verb = []
 verb_error = []
 
+missing_nat = []
+
+missing_aprax_screen = []
+
 all_test = pd.DataFrame()
 
 for file in lang_files:  # Iterate through every found excel file
