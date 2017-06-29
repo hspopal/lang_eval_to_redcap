@@ -140,21 +140,21 @@ for file in lang_files:  # Iterate through every found excel file
 
                     if bnt30_relevant.loc[i]['Correct w/sem cue (1,0)'] == 0:
                         temp_list[3] = (bnt30_relevant.loc[i]
-                                        ['Verbatim response if'
+                                        ['Verbatim response if '
                                          'incorrect after stim cue'])
 
                     if bnt30_relevant.loc[i]['Correct w/ph cue (1,0)'] == 0:
                         temp_list[4] = (bnt30_relevant.loc[i]
-                                        ['Verbatim response'
+                                        ['Verbatim response '
                                          'if incorrect after ph cue'])
 
-                    if bnt30_relevant.loc[i]['Correct w/mult'
+                    if bnt30_relevant.loc[i]['Correct w/mult '
                                              'choice (1,0)'] == 1:
                         temp_list[6] = 'Correct'
-                    elif bnt30_relevant.loc[i]['Correct w/mult'
+                    elif bnt30_relevant.loc[i]['Correct w/mult '
                                                'choice (1,0)'] == 0:
                         temp_list[6] = 'Incorrect'
-                        if bnt30_relevant.loc[i]['Response'
+                        if bnt30_relevant.loc[i]['Response '
                                                  'if incorrect'] != '':
                             temp_list[7] = (bnt30_relevant.loc[i]
                                             ['Response if incorrect'])
@@ -183,18 +183,18 @@ for file in lang_files:  # Iterate through every found excel file
 
                     if bnt30_relevant.loc[i]['Correct w/sem cue (1,0)'] == 0:
                         temp_list[3] = (bnt30_relevant.loc[i]
-                                        ['Verbatim response if'
+                                        ['Verbatim response if '
                                          'incorrect after stim cue'])
 
                     if bnt30_relevant.loc[i]['Correct w/ph cue (1,0)'] == 0:
                         temp_list[4] = (bnt30_relevant.loc[i]
-                                        ['Verbatim response'
+                                        ['Verbatim response '
                                          'if incorrect after ph cue'])
 
-                    if bnt30_relevant.loc[i]['Correct w/mult'
+                    if bnt30_relevant.loc[i]['Correct w/mult '
                                              'choice (1,0)'] == 1:
                         temp_list[6] = 'Correct'
-                    elif bnt30_relevant.loc[i]['Correct w/mult'
+                    elif bnt30_relevant.loc[i]['Correct w/mult '
                                                'choice (1,0)'] == 0:
                         temp_list[6] = 'Incorrect'
                         if (bnt30_relevant.loc[i]
