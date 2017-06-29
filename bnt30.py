@@ -96,8 +96,8 @@ for file in lang_files:  # Iterate through every found excel file
         if not temp_head_errors:
             bnt30_notNaN = bnt30[~pd.isnull(bnt30['Boston Naming Test'])]
             bnt30_only_items = bnt30_notNaN[pd.isnull(bnt30
-                                            ['Boston Naming Test']
-                                            .str.isnumeric())]
+                                                      ['Boston Naming Test']
+                                                      .str.isnumeric())]
             bnt30_only_items.columns = headers
 
             bnt30_relevant = bnt30_only_items[[
