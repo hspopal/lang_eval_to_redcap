@@ -23,10 +23,10 @@ def find(pattern, path):
                 result.append(os.path.join(root, name))
     return result
 
-lang_files = find('*.xls', work_dir + '/Patients/')
-# lang_files = [work_dir +
-# '/Patients/LastNameA_F/Adamian_Daniel
-# /010815/adamian_lang_010815.xls']
+#lang_files = find('*.xls', work_dir + '/Patients/')
+lang_files = [work_dir +
+              '/Patients/LastNameA_F/Adamian_Daniel'
+              '/010815/adamian_lang_010815.xls']
 
 data = []
 
@@ -46,25 +46,6 @@ header_error_wab_reading = []
 
 missing_transcr = []
 transcr_response_error = []
-
-missing_cowa = []
-missing_writ_sample = []
-sample_error = []
-
-missing_spelling = []
-header_error_spelling = []
-
-missing_ppt = []
-header_error_ppt = []
-
-missing_verb = []
-verb_error = []
-
-missing_nat = []
-
-missing_aprax_screen = []
-
-missing_csb_wpm = []
 
 all_test = pd.DataFrame()
 
@@ -87,39 +68,20 @@ for file in lang_files:  # Iterate through every found excel file
     xl = pd.ExcelFile(file)
     sprdshts = xl.sheet_names  # see all sheet names
 
-    # Boston Naming Test 30
-
-    os.system('bnt30.py')
-    # subprocess.call('bnt30.py')
-
     # WAB Commands
+    if 'WAB commands' in sprdshts:
+        wab_com = pd.read_excel(file, 'WAB commands', skiprows=1)
+        wab_com_notNaN = wab_com[~pd.isnull(wab_com['Unnamed: 0'])]
+        wab_com_headers = ['wab_hand', 'wab_eyes', 'wab_point_chair',
+                           'wab_window_door', 'wab_pen_book',
+                           'wab_book_with_pen',
+                           'wab_pen_with_book', 'wab_comb_with_pen',
+                           'wab_comb_with_book', 'wab_pen_book_give',
+                           'wab_comb_pen_turn_book']
 
-    os.system('WAB_command.py')
+        temp_df = pd.DataFrame([wab_com_notNaN['Score'].tolist()],
+                               columns=wab_com_headers)
+        single_test = pd.concat([single_test, temp_df], axis=1)
 
-    # WAB Repitition
-
-    os.system('WAB_repitition.py')
-
-    # WAB Reading
-
-    os.system('WAB_read_comm.py')
-    os.system('WAB_read_comp.py')
-
-    # Adding data from each file as a new row
-    if count == 0:
-        final = single_test
     else:
-        final = final.append(single_test)
-    count = count + 1
-
-
-# Exporting for Redcap import
-final.to_csv('import_to_redcap.csv', encoding='utf-8')
-
-
-# Questions
-# what do then numbers in column A represent? Item numbers?
-# How can we get Redcap IDs for all subjects on aphasia?
-# How can we get the correct event name?
-# Use API to download all data and see what event should be next?
-# Do all of the spreadsheets have the same template per test?
+        missing_wab_commands.append(file)

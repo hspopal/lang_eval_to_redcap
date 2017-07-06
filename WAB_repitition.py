@@ -44,28 +44,6 @@ missing_wab_reading = []
 header_error_bnt30 = []
 header_error_wab_reading = []
 
-missing_transcr = []
-transcr_response_error = []
-
-missing_cowa = []
-missing_writ_sample = []
-sample_error = []
-
-missing_spelling = []
-header_error_spelling = []
-
-missing_ppt = []
-header_error_ppt = []
-
-missing_verb = []
-verb_error = []
-
-missing_nat = []
-
-missing_aprax_screen = []
-
-missing_csb_wpm = []
-
 all_test = pd.DataFrame()
 
 for file in lang_files:  # Iterate through every found excel file
@@ -87,39 +65,29 @@ for file in lang_files:  # Iterate through every found excel file
     xl = pd.ExcelFile(file)
     sprdshts = xl.sheet_names  # see all sheet names
 
-    # Boston Naming Test 30
-
-    os.system('bnt30.py')
-    # subprocess.call('bnt30.py')
-
-    # WAB Commands
-
-    os.system('WAB_command.py')
-
     # WAB Repitition
+    if 'WAB Repetition' in sprdshts:
+        wab_rep = pd.read_excel(file, 'WAB Repetition', skiprows=1)
+        wab_rep_notNaN = wab_rep[~pd.isnull(wab_rep['Unnamed: 0'])]
+        wab_rep_headers = []
+        for n in range(1, 16):
+            wab_rep_headers.append('wab_repetition_'+str(n))
+            wab_rep_headers.append('wab_repetition_'+str(n)+'_vrbtm')
 
-    os.system('WAB_repitition.py')
+        temp_items = []
+        wab_rep_notNaN['Verbatim response if incorrect'] = (wab_rep_notNaN
+                                                            ['Verbatim response
+                                                             'if incorrect']
+                                                            .replace(np.nan,
+                                                                     '',
+                                                                     regex=True
+                                                                     ))
+        for n in range(0, 15):
+            temp_items.append(wab_rep_notNaN['Score'][n])
+            temp_items.append(wab_rep_notNaN
+                              ['Verbatim response if incorrect'][n])
 
-    # WAB Reading
-
-    os.system('WAB_read_comm.py')
-    os.system('WAB_read_comp.py')
-
-    # Adding data from each file as a new row
-    if count == 0:
-        final = single_test
+        temp_df = pd.DataFrame([temp_items], columns=wab_rep_headers)
+        single_test = pd.concat([single_test, temp_df], axis=1)
     else:
-        final = final.append(single_test)
-    count = count + 1
-
-
-# Exporting for Redcap import
-final.to_csv('import_to_redcap.csv', encoding='utf-8')
-
-
-# Questions
-# what do then numbers in column A represent? Item numbers?
-# How can we get Redcap IDs for all subjects on aphasia?
-# How can we get the correct event name?
-# Use API to download all data and see what event should be next?
-# Do all of the spreadsheets have the same template per test?
+        missing_wab_repetition.append(file)

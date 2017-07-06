@@ -23,16 +23,15 @@ def find(pattern, path):
                 result.append(os.path.join(root, name))
     return result
 
-lang_files = find('*.xls', work_dir + '/Patients/')
-# lang_files = [work_dir +
-# '/Patients/LastNameA_F/Adamian_Daniel
-# /010815/adamian_lang_010815.xls']
+#lang_files = find('*.xls', work_dir + '/Patients/')
+lang_files = [work_dir +
+              '/Patients/LastNameA_F/Adamian_Daniel'
+              '/010815/adamian_lang_010815.xls']
 
 data = []
 
 # cols will be used to build dataframe off of specific Redcap headers
 cols = pd.read_csv(work_dir + '/redcap_headers.csv')
-
 single_test = pd.DataFrame()
 count = 0
 
@@ -46,25 +45,6 @@ header_error_wab_reading = []
 
 missing_transcr = []
 transcr_response_error = []
-
-missing_cowa = []
-missing_writ_sample = []
-sample_error = []
-
-missing_spelling = []
-header_error_spelling = []
-
-missing_ppt = []
-header_error_ppt = []
-
-missing_verb = []
-verb_error = []
-
-missing_nat = []
-
-missing_aprax_screen = []
-
-missing_csb_wpm = []
 
 all_test = pd.DataFrame()
 
@@ -87,39 +67,26 @@ for file in lang_files:  # Iterate through every found excel file
     xl = pd.ExcelFile(file)
     sprdshts = xl.sheet_names  # see all sheet names
 
-    # Boston Naming Test 30
+    # WAB Reading Command
+    if 'WAB Reading' in sprdshts:
+        wab_read = pd.read_excel(file, 'WAB Reading', skiprows=1)
 
-    os.system('bnt30.py')
-    # subprocess.call('bnt30.py')
-
-    # WAB Commands
-
-    os.system('WAB_command.py')
-
-    # WAB Repitition
-
-    os.system('WAB_repitition.py')
-
-    # WAB Reading
-
-    os.system('WAB_read_comm.py')
-    os.system('WAB_read_comp.py')
-
-    # Adding data from each file as a new row
-    if count == 0:
-        final = single_test
+        if wab_read.empty:
+            missing_wab_reading.append(file)
+        else:
+            wab_read_comm = pd.read_excel(file, 'WAB Reading', skiprows=15)
+            wab_read_comm = wab_read_comm.iloc[0:6]
+            wab_read_comm_headers = []
+            for n in range(1, 7):
+                wab_read_comm_headers.append('wab_read_comm_'+str(n)+'_read')
+                wab_read_comm_headers.append('wab_read_comm_'+str(n)+'_perf')
+            temp_items = []
+            for n in range(0, 6):
+                temp_items.append(wab_read_comm['Reading score earned'][n])
+                temp_items.append(wab_read_comm['Perf score earned'][n])
+            temp_df = pd.DataFrame([temp_items], columns=wab_read_comm_headers)
+            single_test = pd.concat([single_test, temp_df], axis=1)
     else:
-        final = final.append(single_test)
-    count = count + 1
-
-
-# Exporting for Redcap import
-final.to_csv('import_to_redcap.csv', encoding='utf-8')
-
-
-# Questions
-# what do then numbers in column A represent? Item numbers?
-# How can we get Redcap IDs for all subjects on aphasia?
-# How can we get the correct event name?
-# Use API to download all data and see what event should be next?
-# Do all of the spreadsheets have the same template per test?
+        header_error_wab_reading.append(file)
+else:
+    missing_wab_reading.append(file)

@@ -23,10 +23,10 @@ def find(pattern, path):
                 result.append(os.path.join(root, name))
     return result
 
-lang_files = find('*.xls', work_dir + '/Patients/')
-# lang_files = [work_dir +
-# '/Patients/LastNameA_F/Adamian_Daniel
-# /010815/adamian_lang_010815.xls']
+# lang_files = find('*.xls', work_dir + '/Patients/')
+lang_files = [work_dir +
+              '/Patients/LastNameA_F/Adamian_Daniel'
+              '/010815/adamian_lang_010815.xls']
 
 data = []
 
@@ -48,23 +48,6 @@ missing_transcr = []
 transcr_response_error = []
 
 missing_cowa = []
-missing_writ_sample = []
-sample_error = []
-
-missing_spelling = []
-header_error_spelling = []
-
-missing_ppt = []
-header_error_ppt = []
-
-missing_verb = []
-verb_error = []
-
-missing_nat = []
-
-missing_aprax_screen = []
-
-missing_csb_wpm = []
 
 all_test = pd.DataFrame()
 
@@ -87,39 +70,40 @@ for file in lang_files:  # Iterate through every found excel file
     xl = pd.ExcelFile(file)
     sprdshts = xl.sheet_names  # see all sheet names
 
-    # Boston Naming Test 30
+    # COWA
 
-    os.system('bnt30.py')
-    # subprocess.call('bnt30.py')
+    if 'COWA' in sprdshts:
+        cowa = pd.read_excel(file, 'COWA', skiprows=2)
+        cowa_headers = cowa.loc[1].tolist()
 
-    # WAB Commands
+        if cowa.empty:
+            missing_cowa.append(file)
+        else:
+            temp_df = cowa.dropna()
+            temp_df['f'] = cowa['F'].str.extract('(.*)', expand=True)
+            temp_df['a'] = cowa['A'].str.extract('(.*)', expand=True)
+            temp_df['s'] = cowa['S'].str.extract('(.*)', expand=True)
+            temp_df['animals'] = (cowa['animals'].
+                                  str.extract('(.*)', expand=True))
+            temp_df['vegetables'] = (cowa['vegetables']
+                                     .str.extract('(.*)', expand=True))
 
-    os.system('WAB_command.py')
+            F = temp_df['f'].tolist()
+            A = temp_df['a'].tolist()
+            S = temp_df['s'].tolist()
+            animals = temp_df['animals'].tolist()
+            vegetables = temp_df['vegetables'].tolist()
 
-    # WAB Repitition
+            scores_df = cowa.dropna()
+            scores_df['f'] = cowa['F'].str.extract('(\d)', expand=True)
+            F_score = scores_df['F'].tolist()
+            A_score = scores_df['A'].tolist()
+            S_score = scores_df['S'].tolist()
+            animals_score = scores_df['animals'].tolist()
+            vegetables_score = scores_df['vegetables'].tolist()
 
-    os.system('WAB_repitition.py')
+            temp_list = [F, A, S, animals, vegetables]
+            cowa_df = pd.DataFrame([temp_list])
 
-    # WAB Reading
-
-    os.system('WAB_read_comm.py')
-    os.system('WAB_read_comp.py')
-
-    # Adding data from each file as a new row
-    if count == 0:
-        final = single_test
     else:
-        final = final.append(single_test)
-    count = count + 1
-
-
-# Exporting for Redcap import
-final.to_csv('import_to_redcap.csv', encoding='utf-8')
-
-
-# Questions
-# what do then numbers in column A represent? Item numbers?
-# How can we get Redcap IDs for all subjects on aphasia?
-# How can we get the correct event name?
-# Use API to download all data and see what event should be next?
-# Do all of the spreadsheets have the same template per test?
+        missing_cowa.append(file)

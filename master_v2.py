@@ -23,18 +23,19 @@ def find(pattern, path):
                 result.append(os.path.join(root, name))
     return result
 
-lang_files = find('*.xls', work_dir + '/Patients/')
-# lang_files = [work_dir +
-# '/Patients/LastNameA_F/Adamian_Daniel
-# /010815/adamian_lang_010815.xls']
+#lang_files = find('*.xls', work_dir + '/Patients/')
+lang_files = [work_dir +
+              '/Patients/LastNameA_F/Adamian_Daniel'
+              '/010815/adamian_lang_010815.xls']
 
 data = []
 
 # cols will be used to build dataframe off of specific Redcap headers
-cols = pd.read_csv(work_dir + '/redcap_headers.csv')
+#cols = pd.read_csv(work_dir + '/redcap_headers.csv')
 
 single_test = pd.DataFrame()
 count = 0
+final = pd.DataFrame()
 
 missing_bnt30 = []
 missing_wab_commands = []
@@ -69,8 +70,11 @@ missing_csb_wpm = []
 all_test = pd.DataFrame()
 
 for file in lang_files:  # Iterate through every found excel file
+    
+    # save file as txt to read in bnt30_v2
+    
     single_test = pd.DataFrame()
-
+    file_txt = file.to_csv('file.txt')
     # Find subject's name from file path
     single_test['Subject'] = []
     m = re.search(work_dir + '/Patients/LastNameA_F/(.+?)/', file)
@@ -86,31 +90,44 @@ for file in lang_files:  # Iterate through every found excel file
 
     xl = pd.ExcelFile(file)
     sprdshts = xl.sheet_names  # see all sheet names
-
+    
+    
     # Boston Naming Test 30
+    if 'BNT30' in sprdshts:
+        os.system('python bnt30_v2.py file')
+        header_error_bnt30.append(temp_head_errors)
+    else:
+        missing_bnt30.append(file)
+    #bnt.bnt30(file)
+    # bnt30.bnt30(file) 
+    
+    #final.append(single_test)
 
-    os.system('bnt30.py')
-    # subprocess.call('bnt30.py')
+    # Lang Trascriptions
+    
+    #os.system('python lang_trascr2.py file')
+    #final.append(single_test)
 
     # WAB Commands
 
-    os.system('WAB_command.py')
+    # os.system('WAB_command.py')
 
     # WAB Repitition
 
-    os.system('WAB_repitition.py')
+    # os.system('python WAB_repitition.py file')
 
     # WAB Reading
 
-    os.system('WAB_read_comm.py')
-    os.system('WAB_read_comp.py')
+    # os.system('WAB_read_comm.py')
+    # os.system('WAB_read_comp.py')
 
     # Adding data from each file as a new row
-    if count == 0:
-        final = single_test
-    else:
-        final = final.append(single_test)
-    count = count + 1
+    #if count == 0:
+        #final = single_test
+    #else:
+        #final = final.append(single_test)
+    #count = count + 1
+
 
 
 # Exporting for Redcap import

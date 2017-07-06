@@ -25,8 +25,8 @@ def find(pattern, path):
 
 lang_files = find('*.xls', work_dir + '/Patients/')
 # lang_files = [work_dir +
-# '/Patients/LastNameA_F/Adamian_Daniel
-# /010815/adamian_lang_010815.xls']
+# '/Patients/LastNameA_F/Adamian_Daniel'
+# '/010815/adamian_lang_010815.xls']
 
 data = []
 
@@ -44,29 +44,13 @@ missing_wab_reading = []
 header_error_bnt30 = []
 header_error_wab_reading = []
 
-missing_transcr = []
-transcr_response_error = []
-
-missing_cowa = []
-missing_writ_sample = []
-sample_error = []
-
-missing_spelling = []
-header_error_spelling = []
-
-missing_ppt = []
-header_error_ppt = []
-
-missing_verb = []
-verb_error = []
-
-missing_nat = []
-
-missing_aprax_screen = []
-
-missing_csb_wpm = []
-
 all_test = pd.DataFrame()
+
+raw_ID = []
+
+ID_error_firstname = []
+ID_error_lastname = []
+ID_error_date = []
 
 for file in lang_files:  # Iterate through every found excel file
     single_test = pd.DataFrame()
@@ -85,41 +69,29 @@ for file in lang_files:  # Iterate through every found excel file
     single_test.ix[0, 'Subject'] = found
 
     xl = pd.ExcelFile(file)
-    sprdshts = xl.sheet_names  # see all sheet names
+    sprdshts = xl.sheet_names
 
-    # Boston Naming Test 30
+    date = str(file[-10:-4])
 
-    os.system('bnt30.py')
-    # subprocess.call('bnt30.py')
+    raw = str(file[67:])
+    raw_ID.append(raw)
 
-    # WAB Commands
-
-    os.system('WAB_command.py')
-
-    # WAB Repitition
-
-    os.system('WAB_repitition.py')
-
-    # WAB Reading
-
-    os.system('WAB_read_comm.py')
-    os.system('WAB_read_comp.py')
-
-    # Adding data from each file as a new row
-    if count == 0:
-        final = single_test
+ID = pd.DataFrame(raw_ID, columns=['raw'])
+ID['first_name'] = ID['raw'].str.extract('/.+?_(.*)/\d', expand=True)
+if ID['first_name'].isnull:
+    ID_error_firstname.append(file)
+else:
+    ID['first_initial'] = ID['first_name'].astype(str).str[0]
+    ID['last_name'] = ID['raw'].str.extract('/(.*)_.+?/\d', expand=True)
+    if ID['last_name'].isnull:
+        ID_error_lastname.append(file)
     else:
-        final = final.append(single_test)
-    count = count + 1
-
-
-# Exporting for Redcap import
-final.to_csv('import_to_redcap.csv', encoding='utf-8')
-
-
-# Questions
-# what do then numbers in column A represent? Item numbers?
-# How can we get Redcap IDs for all subjects on aphasia?
-# How can we get the correct event name?
-# Use API to download all data and see what event should be next?
-# Do all of the spreadsheets have the same template per test?
+        ID['date'] = ID['raw'].str.extract('/(\d\d\d\d\d\d)/', expand=True)
+        if ID['date'].isnull:
+            ID['date'] = str(ID['raw'].astype(str).str[-10:-4])
+            if ID['date'].isnull:
+                ID_error_date.append(file)
+        else:
+            ID_lower = ID['first_initial'] + (ID['last_name'].astype
+                                              (str).str[:3] + '_')
+            ID['ID'] = ID_lower.str.upper()
