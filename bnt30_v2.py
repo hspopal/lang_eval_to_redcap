@@ -18,7 +18,6 @@ os.chdir(work_dir)
 
 cols = pd.read_csv(work_dir + '/redcap_headers.csv')
 
-"""
 def find(pattern, path):
     result = []
     for root, dirs, files in os.walk(path):
@@ -35,7 +34,7 @@ lang_files = find('*.xls', work_dir + '/Patients/')
 data = []
 
 # cols will be used to build dataframe off of specific Redcap headers
-cols = pd.read_csv(work_dir + '/redcap_headers.csv')
+# cols = pd.read_csv(work_dir + '/redcap_headers.csv')
 
 single_test = pd.DataFrame()
 count = 0
@@ -71,8 +70,11 @@ for file in lang_files:  # Iterate through every found excel file
 
     xl = pd.ExcelFile(file)
     sprdshts = xl.sheet_names  # see all sheet names
-"""
-
+'''
+txt = pd.read_table(work_dir + '/filepath.txt')
+file_ = txt.columns.tolist()
+file = file_[0]
+'''
 bnt30 = pd.read_excel(file, 'BNT30')
 #xl = pd.ExcelFile(file)
 #xl.sheet_names
@@ -215,14 +217,16 @@ if file not in temp_head_errors:
                                             cols.columns if 'bnt30' in
                                             col and '_' + str(i)
                                             in col])
+        print len(single_test1.columns)
         single_test1 = pd.concat([single_test1, temp_df], axis=1)
+        single_test1.to_csv(work_dir + 'bnt30_test.csv')
+
 #else:
 #    header_error_bnt30.append([file, temp_head_errors])
     
     
-    """
+    
     else:
         missing_bnt30.append(file)
     all_test = all_test.append(single_test)
 all_test.to_csv('BNT30-Final.csv', encoding='utf-8')
-"""
