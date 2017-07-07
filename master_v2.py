@@ -23,26 +23,27 @@ def find(pattern, path):
                 result.append(os.path.join(root, name))
     return result
 
-#lang_files = find('*.xls', work_dir + '/Patients/')
-lang_files = [work_dir +
-              '/Patients/LastNameA_F/Adamian_Daniel'
-              '/010815/adamian_lang_010815.xls']
+lang_files = find('*.xls', work_dir + '/Patients/')
+#lang_files = [work_dir +
+ #             '/Patients/LastNameA_F/Adamian_Daniel'
+  #            '/010815/adamian_lang_010815.xls']
 
 data = []
 
 # cols will be used to build dataframe off of specific Redcap headers
 #cols = pd.read_csv(work_dir + '/redcap_headers.csv')
 
-single_test = pd.DataFrame()
 count = 0
-final = pd.DataFrame()
+# single_test = pd.DataFrame()
+# final = pd.DataFrame()
 
 missing_bnt30 = []
+header_error_bnt30 = []
+temp_head_errors = []
+
 missing_wab_commands = []
 missing_wab_repetition = []
 missing_wab_reading = []
-
-header_error_bnt30 = []
 header_error_wab_reading = []
 
 missing_transcr = []
@@ -72,9 +73,13 @@ all_test = pd.DataFrame()
 for file in lang_files:  # Iterate through every found excel file
     
     # save file as txt to read in bnt30_v2
-    
+
+    with open(work_dir + '/filepath.txt', 'w') as txt:
+        txt.write(file)
+
     single_test = pd.DataFrame()
-    file_txt = file.to_csv('file.txt')
+    final = pd.DataFrame()
+        
     # Find subject's name from file path
     single_test['Subject'] = []
     m = re.search(work_dir + '/Patients/LastNameA_F/(.+?)/', file)
@@ -89,33 +94,39 @@ for file in lang_files:  # Iterate through every found excel file
     single_test.ix[0, 'Subject'] = found
 
     xl = pd.ExcelFile(file)
-    sprdshts = xl.sheet_names  # see all sheet names
-    
-    
+    sprdshts = xl.sheet_names  # see all sheet names    
+       
     # Boston Naming Test 30
     if 'BNT30' in sprdshts:
         os.system('python bnt30_v2.py file')
         header_error_bnt30.append(temp_head_errors)
+        bnt30_test = pd.read_csv(work_dir + 'bnt30_test.csv')
+        final = pd.concat([final, bnt30_test], axis=1)
     else:
         missing_bnt30.append(file)
-    #bnt.bnt30(file)
-    # bnt30.bnt30(file) 
     
-    #final.append(single_test)
-
-    # Lang Trascriptions
-    
-    #os.system('python lang_trascr2.py file')
-    #final.append(single_test)
+    # Lang Transcriptions
+    if 'Lang transcriptions' in sprdshts:
+        os.system('python lang_transcr2.py file')
+        lang_trans_test = pd.read_csv(work_dir + 'lang_trans_test.csv')
+        final = pd.concat([final, lang_trans_test], axis=1)
+        print file
+    else:
+        missing_transcr.append(file)
 
     # WAB Commands
 
     # os.system('WAB_command.py')
 
     # WAB Repitition
-
-    # os.system('python WAB_repitition.py file')
-
+    
+    if 'WAB Repetition' in sprdshts:
+        os.system('python WAB_repitition.py file')
+        wab_rep_test = pd.read_csv(work_dir + 'wab_rep_test.csv')
+        final = pd.concat([final, wab_rep_test], axis=1, join='inner')
+    else:
+        missing_wab_repetition.append(file)
+    
     # WAB Reading
 
     # os.system('WAB_read_comm.py')
@@ -128,10 +139,12 @@ for file in lang_files:  # Iterate through every found excel file
         #final = final.append(single_test)
     #count = count + 1
 
+    all_test = pd.concat([all_test, final], axis=0, ignore_index=True) 
 
+# FOR EACH TEST, PUT RESULTS IN A 'SING TEST' LIST TYPE THING/DF, THEN COMBINE AT END INTO FINAL DF
 
 # Exporting for Redcap import
-final.to_csv('import_to_redcap.csv', encoding='utf-8')
+all_test.to_csv('import_to_redcap.csv', encoding='utf-8')
 
 
 # Questions
