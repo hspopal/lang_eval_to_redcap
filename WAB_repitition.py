@@ -5,10 +5,14 @@ import re
 
 import os
 import fnmatch
+from datetime import datetime
+
 
 # Capture all subject lang files
 # Skip spreadsheets that have errors for missing tabs, or ill formatted headers
 # Create a seperate list for each error with failed subjects/files
+
+# ****** This script does not capture second trys
 
 work_dir = '/Users/axs97/Desktop/lang_eval_to_redcap-alexs'
 
@@ -36,6 +40,8 @@ cols = pd.read_csv(work_dir + '/redcap_headers.csv')
 single_test = pd.DataFrame()
 count = 0
 
+date_error = []
+
 missing_bnt30 = []
 missing_wab_commands = []
 missing_wab_repetition = []
@@ -62,6 +68,15 @@ for file in lang_files:  # Iterate through every found excel file
         found = m.group(1)
     single_test.ix[0, 'Subject'] = found
 
+    match = re.search(r'(\d\d\d\d\d\d)/', file)
+    if match is None:
+        date_error.append(file)
+        #single_test.ix[1, 'Date'] = str(file[-10:-4])
+        single_test.ix[0, 'Date'] = str("")
+    else:
+        date = datetime.strptime((match.group())[:-1], '%m%d%y').date()
+        single_test.ix[0, 'Date'] = str(date)
+
     xl = pd.ExcelFile(file)
     sprdshts = xl.sheet_names  # see all sheet names
 
@@ -76,12 +91,13 @@ for file in lang_files:  # Iterate through every found excel file
 
         temp_items = []
         wab_rep_notNaN['Verbatim response if incorrect'] = (wab_rep_notNaN
-                                                            ['Verbatim response
+                                                            ['Verbatim response '
                                                              'if incorrect']
                                                             .replace(np.nan,
                                                                      '',
                                                                      regex=True
                                                                      ))
+        wab_rep_notNaN = wab_rep_notNaN.reset_index()
         for n in range(0, 15):
             temp_items.append(wab_rep_notNaN['Score'][n])
             temp_items.append(wab_rep_notNaN
@@ -91,3 +107,5 @@ for file in lang_files:  # Iterate through every found excel file
         single_test = pd.concat([single_test, temp_df], axis=1)
     else:
         missing_wab_repetition.append(file)
+    all_test = all_test.append(single_test)
+all_test.to_csv('wab_rep_final.csv', encoding='utf-8')
