@@ -85,7 +85,9 @@ for n in range(1, 16):
     wab_rep_headers.append('wab_repetition_'+str(n))
     wab_rep_headers.append('wab_repetition_'+str(n)+'_vrbtm')
 
-temp_items = []
+temp_items =  ['', '', '', '', '', '', '', '', '', '',
+               '', '', '', '', '', '', '', '', '', '',
+               '', '', '', '', '', '', '', '', '', '']
 wab_rep_notNaN['Verbatim response if incorrect'] = (wab_rep_notNaN
                                                     ['Verbatim response '
                                                      'if incorrect']
