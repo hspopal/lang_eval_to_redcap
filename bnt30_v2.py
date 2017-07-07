@@ -18,6 +18,7 @@ os.chdir(work_dir)
 
 cols = pd.read_csv(work_dir + '/redcap_headers.csv')
 
+'''
 def find(pattern, path):
     result = []
     for root, dirs, files in os.walk(path):
@@ -54,7 +55,6 @@ all_test = pd.DataFrame()
 
 for file in lang_files:  # Iterate through every found excel file
     single_test = pd.DataFrame()
-
     # Find subject's name from file path
     single_test['Subject'] = []
     m = re.search(work_dir + '/Patients/LastNameA_F/(.+?)/', file)
@@ -74,8 +74,9 @@ for file in lang_files:  # Iterate through every found excel file
 txt = pd.read_table(work_dir + '/filepath.txt')
 file_ = txt.columns.tolist()
 file = file_[0]
-'''
-bnt30 = pd.read_excel(file, 'BNT30')
+
+bnt30 = pd.read_excel(file, 'BNT30', encoding='utf-8')
+#bnt30 = bnt30.encode('ascii', 'ignore')
 #xl = pd.ExcelFile(file)
 #xl.sheet_names
 #bnt30 = xl.parse("BNT30")
@@ -162,12 +163,8 @@ if file not in temp_head_errors:
             elif bnt30_relevant.loc[i]['Correct w/mult '
                                        'choice (1,0)'] == 0:
                 temp_list[6] = 'Incorrect'
-                if bnt30_relevant.loc[i]['Response '
-                                         'if incorrect'] != '':
-                    temp_list[7] = (bnt30_relevant.loc[i]
-                                    ['Response if incorrect'])
-                else:
-                    temp_list[7] = 'Check excel sprdsht'
+                temp_list[7] = (bnt30_relevant.loc[i]
+                                ['Response if incorrect'])
 
             temp_df = pd.DataFrame([temp_list],
                                    columns=[col for col in cols.columns
@@ -205,22 +202,18 @@ if file not in temp_head_errors:
             elif bnt30_relevant.loc[i]['Correct w/mult '
                                        'choice (1,0)'] == 0:
                 temp_list[6] = 'Incorrect'
-                if (bnt30_relevant.loc[i]
-                        ['Response if incorrect']) != '':
-                    temp_list[7] = (bnt30_relevant.loc[i]
-                                    ['Response if incorrect'])
-                else:
-                    temp_list[7] = 'Check excel sprdsht'
+                temp_list[7] = (bnt30_relevant.loc[i]
+                                ['Response if incorrect'])
 
             temp_df = pd.DataFrame([temp_list],
                                    columns=[col for col in
                                             cols.columns if 'bnt30' in
                                             col and '_' + str(i)
                                             in col])
-        print len(single_test1.columns)
         single_test1 = pd.concat([single_test1, temp_df], axis=1)
-        single_test1.to_csv(work_dir + 'bnt30_test.csv')
+        single_test1.to_csv(work_dir + 'bnt30_test.csv', encoding='utf-8')
 
+'''    
 #else:
 #    header_error_bnt30.append([file, temp_head_errors])
     
@@ -230,3 +223,4 @@ if file not in temp_head_errors:
         missing_bnt30.append(file)
     all_test = all_test.append(single_test)
 all_test.to_csv('BNT30-Final.csv', encoding='utf-8')
+'''
