@@ -53,7 +53,6 @@ for col in redcap_df.columns:
         relevant_columns.append(col)
 
 redcap_relevant = redcap_df[relevant_columns]
-redcap_relevant.to_csv('redcap_test.csv', encoding='utf-8')
 
 # Match lang spreadsheets to Redcap
 match_final = pd.merge(redcap_relevant, match_test, on=['Subject'], how='inner')
