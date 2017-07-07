@@ -68,13 +68,37 @@ for file in lang_files:  # Iterate through every found excel file
         found = m.group(1)
     single_test.ix[0, 'Subject'] = found
 
-    match = re.search(r'(\d\d\d\d\d\d)/', file)
+    match = re.search(r'/(\d\d\d\d\d\d)/', file)
     if match is None:
-        date_error.append(file)
-        #single_test.ix[1, 'Date'] = str(file[-10:-4])
-        single_test.ix[0, 'Date'] = str("")
+        match = re.search(r'(\d\d\d\d\d\d)/', file)
+        if match is None:
+            match = re.search(r'(\d\d\d\d\d\d).xls', file)
+            if match is None:
+                match = re.search(r'(\d\d_\d\d_\d\d)', file)
+                if match is None:
+                    match = re.search(r'(\d\d.\d\d.\d\d)', file)
+                    if match is None:
+                        match = re.search(r'_(\d\d\d\d\d\d)', file)
+                        if match is None:
+                            date_error.append(file)
+                            single_test.ix[0, 'Date'] = ''
+                        else:
+                            date = datetime.strptime((match.group())[1:], '%m%d%y').date()
+                            single_test.ix[0, 'Date'] = str(date)
+                    else:
+                        date = datetime.strptime((match.group()), '%m.%d.%y').date()
+                        single_test.ix[0, 'Date'] = str(date)
+                else:
+                    date = datetime.strptime((match.group()), '%m_%d_%y').date()
+                    single_test.ix[0, 'Date'] = str(date)
+            else:
+                date = datetime.strptime((match.group())[:-4], '%m%d%y').date()
+                single_test.ix[0, 'Date'] = str(date)
+        else:
+            date = datetime.strptime((match.group())[:-1], '%m%d%y').date()
+            single_test.ix[0, 'Date'] = str(date)
     else:
-        date = datetime.strptime((match.group())[:-1], '%m%d%y').date()
+        date = datetime.strptime((match.group())[1:-1], '%m%d%y').date()
         single_test.ix[0, 'Date'] = str(date)
 
     xl = pd.ExcelFile(file)
