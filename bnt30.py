@@ -2,6 +2,7 @@ import pandas as pd
 import csv
 import numpy as np
 import re
+from datetime import datetime
 
 import os
 import fnmatch
@@ -24,9 +25,7 @@ def find(pattern, path):
     return result
 
 lang_files = find('*.xls', work_dir + '/Patients/')
-# lang_files = [work_dir +
-# '/Patients/LastNameA_F/Adamian_Daniel
-# /010815/adamian_lang_010815.xls']
+#lang_files = [work_dir +'/Patients/LastNameA_F/Adamian_Daniel/010815/adamian_lang_010815.xls']
 
 data = []
 
@@ -35,6 +34,8 @@ cols = pd.read_csv(work_dir + '/redcap_headers.csv')
 
 single_test = pd.DataFrame()
 count = 0
+
+date_error = []
 
 missing_bnt30 = []
 missing_wab_commands = []
@@ -51,7 +52,8 @@ all_test = pd.DataFrame()
 
 for file in lang_files:  # Iterate through every found excel file
     single_test = pd.DataFrame()
-
+    print file    
+    
     # Find subject's name from file path
     single_test['Subject'] = []
     m = re.search(work_dir + '/Patients/LastNameA_F/(.+?)/', file)
@@ -64,7 +66,16 @@ for file in lang_files:  # Iterate through every found excel file
     if m:
         found = m.group(1)
     single_test.ix[0, 'Subject'] = found
-
+    
+    match = re.search(r'(\d\d\d\d\d\d)/', file)
+    if match is None:
+        date_error.append(file)
+        #single_test.ix[1, 'Date'] = str(file[-10:-4])
+        single_test.ix[0, 'Date'] = str("")
+    else:
+        date = datetime.strptime((match.group())[:-1], '%m%d%y').date()
+        single_test.ix[0, 'Date'] = str(date)
+   
     xl = pd.ExcelFile(file)
     sprdshts = xl.sheet_names  # see all sheet names
 
@@ -210,6 +221,7 @@ for file in lang_files:  # Iterate through every found excel file
                                                     col and '_' + str(i)
                                                     in col])
                 single_test = pd.concat([single_test, temp_df], axis=1)
+
         else:
             header_error_bnt30.append([file, temp_head_errors])
     else:
