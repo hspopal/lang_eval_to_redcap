@@ -26,6 +26,8 @@ def find(pattern, path):
 
 lang_files = find('*.xls', work_dir + '/Patients/')
 #lang_files = [work_dir +'/Patients/LastNameA_F/Adamian_Daniel/010815/adamian_lang_010815.xls']
+#lang_files = [work_dir + '/Patients/LastNameN_Z/Russell_Merrie/ClinBattery_RussellM_032210.xls']
+#lang_files = [work_dir +'/Patients/LastNameA_F/Cappello_Paul/051616/lang_eval_PC_051616.xls']
 
 data = []
 
@@ -37,12 +39,17 @@ count = 0
 
 date_error = []
 
-missing_bnt30 = []
+total_files = []
+
+bnt30_total = [] # 246
+bnt30_script_error = [] # 0
+missing_bnt30_file = [] # 47 (xls sheet does not have BNT30)
+
 missing_wab_commands = []
 missing_wab_repetition = []
 missing_wab_reading = []
 
-header_error_bnt30 = []
+header_error_bnt30 = [] # 51 (typically 'if' is written 'of')
 header_error_wab_reading = []
 
 missing_transcr = []
@@ -51,72 +58,73 @@ transcr_response_error = []
 all_test = pd.DataFrame()
 
 for file in lang_files:  # Iterate through every found excel file
-    single_test = pd.DataFrame()
-    print file    
-    
-    # Find subject's name from file path
-    single_test['Subject'] = []
-    m = re.search(work_dir + '/Patients/LastNameA_F/(.+?)/', file)
-    if m:
-        found = m.group(1)
-    m = re.search(work_dir + '/Patients/LastNameG_M/(.+?)/', file)
-    if m:
-        found = m.group(1)
-    m = re.search(work_dir + '/Patients/LastNameN_Z/(.+?)/', file)
-    if m:
-        found = m.group(1)
-    single_test.ix[0, 'Subject'] = found
-    
-#    match = re.search(r'(\d\d\d\d\d\d)/', file)
-#    if match is None:
-#        date_error.append(file)
-#        #single_test.ix[1, 'Date'] = str(file[-10:-4])
-#        single_test.ix[0, 'Date'] = str("")
-#    else:
-#        date = datetime.strptime((match.group())[:-1], '%m%d%y').date()
-#        single_test.ix[0, 'Date'] = str(date)
-   
-    match = re.search(r'/(\d\d\d\d\d\d)/', file)
-    if match is None:
-        match = re.search(r'(\d\d\d\d\d\d)/', file)
-        if match is None:
-            match = re.search(r'(\d\d\d\d\d\d).xls', file)
-            if match is None:
-                match = re.search(r'(\d\d_\d\d_\d\d)', file)
-                if match is None:
-                    match = re.search(r'(\d\d.\d\d.\d\d)', file)
-                    if match is None:
-                        match = re.search(r'_(\d\d\d\d\d\d)', file)
-                        if match is None:
-                            date_error.append(file)
-                            single_test.ix[0, 'Date'] = ''
-                        else:
-                            date = datetime.strptime((match.group())[1:], '%m%d%y').date()
-                            single_test.ix[0, 'Date'] = str(date)
-                    else:
-                        date = datetime.strptime((match.group()), '%m.%d.%y').date()
-                        single_test.ix[0, 'Date'] = str(date)
-                else:
-                    date = datetime.strptime((match.group()), '%m_%d_%y').date()
-                    single_test.ix[0, 'Date'] = str(date)
-            else:
-                date = datetime.strptime((match.group())[:-4], '%m%d%y').date()
-                single_test.ix[0, 'Date'] = str(date)
-        else:
-            date = datetime.strptime((match.group())[:-1], '%m%d%y').date()
-            single_test.ix[0, 'Date'] = str(date)
-    else:
-        date = datetime.strptime((match.group())[1:-1], '%m%d%y').date()
-        single_test.ix[0, 'Date'] = str(date)
-    
+    total_files.append(file)
+    # Boston Naming Test 30
     xl = pd.ExcelFile(file)
     sprdshts = xl.sheet_names  # see all sheet names
-
-    # Boston Naming Test 30
+    
     if 'BNT30' in sprdshts:
+        bnt30_total.append(file)
         bnt30 = pd.read_excel(file, 'BNT30')
         headers = bnt30.loc[3].tolist()
         headers[0] = 'item'
+        
+        single_test = pd.DataFrame()
+    
+        # Find subject's name from file path
+        single_test['Subject'] = []
+        m = re.search(work_dir + '/Patients/LastNameA_F/(.+?)/', file)
+        if m:
+            found = m.group(1)
+        m = re.search(work_dir + '/Patients/LastNameG_M/(.+?)/', file)
+        if m:
+            found = m.group(1)
+        m = re.search(work_dir + '/Patients/LastNameN_Z/(.+?)/', file)
+        if m:
+            found = m.group(1)
+        single_test.ix[0, 'Subject'] = found
+        
+#        match = re.search(r'(\d\d\d\d\d\d)/', file)
+#        if match is None:
+#            date_error.append(file)
+#            #single_test.ix[1, 'Date'] = str(file[-10:-4])
+#            single_test.ix[0, 'Date'] = str("")
+#        else:
+#            date = datetime.strptime((match.group())[:-1], '%m%d%y').date()
+#            single_test.ix[0, 'Date'] = str(date)
+    
+        match = re.search(r'/(\d\d\d\d\d\d)/', file)
+        if match is None:
+            match = re.search(r'(\d\d\d\d\d\d)/', file)
+            if match is None:
+                match = re.search(r'(\d\d\d\d\d\d).xls', file)
+                if match is None:
+                    match = re.search(r'(\d\d_\d\d_\d\d)', file)
+                    if match is None:
+                        match = re.search(r'(\d\d.\d\d.\d\d)', file)
+                        if match is None:
+                            match = re.search(r'_(\d\d\d\d\d\d)', file)
+                            if match is None:
+                                date_error.append(file)
+                                single_test.ix[0, 'Date'] = ''
+                            else:
+                                date = datetime.strptime((match.group())[1:], '%m%d%y').date()
+                                single_test.ix[0, 'Date'] = str(date)
+                        else:
+                            date = datetime.strptime((match.group()), '%m.%d.%y').date()
+                            single_test.ix[0, 'Date'] = str(date)
+                    else:
+                        date = datetime.strptime((match.group()), '%m_%d_%y').date()
+                        single_test.ix[0, 'Date'] = str(date)
+                else:
+                    date = datetime.strptime((match.group())[:-4], '%m%d%y').date()
+                    single_test.ix[0, 'Date'] = str(date)
+            else:
+                date = datetime.strptime((match.group())[:-1], '%m%d%y').date()
+                single_test.ix[0, 'Date'] = str(date)
+        else:
+            date = datetime.strptime((match.group())[1:-1], '%m%d%y').date()
+            single_test.ix[0, 'Date'] = str(date)
 
         relevant_headers = [
             'Spont correct (1, 0)',
@@ -195,15 +203,11 @@ for file in lang_files:  # Iterate through every found excel file
                     if bnt30_relevant.loc[i]['Correct w/mult '
                                              'choice (1,0)'] == 1:
                         temp_list[6] = 'Correct'
-                    elif bnt30_relevant.loc[i]['Correct w/mult '
-                                               'choice (1,0)'] == 0:
+                    if bnt30_relevant.loc[i]['Correct w/mult '
+                                             'choice (1,0)'] == 0:
                         temp_list[6] = 'Incorrect'
-                        if bnt30_relevant.loc[i]['Response '
-                                                 'if incorrect'] != '':
-                            temp_list[7] = (bnt30_relevant.loc[i]
-                                            ['Response if incorrect'])
-                        else:
-                            temp_list[7] = 'Check excel sprdsht'
+                        temp_list[7] = (bnt30_relevant.loc[i]
+                                        ['Response if incorrect'])
 
                     temp_df = pd.DataFrame([temp_list],
                                            columns=[col for col in cols.columns
@@ -238,26 +242,31 @@ for file in lang_files:  # Iterate through every found excel file
                     if bnt30_relevant.loc[i]['Correct w/mult '
                                              'choice (1,0)'] == 1:
                         temp_list[6] = 'Correct'
-                    elif bnt30_relevant.loc[i]['Correct w/mult '
-                                               'choice (1,0)'] == 0:
+
+                    if bnt30_relevant.loc[i]['Correct w/mult '
+                                             'choice (1,0)'] == 0:
                         temp_list[6] = 'Incorrect'
-                        if (bnt30_relevant.loc[i]
-                                ['Response if incorrect']) != '':
-                            temp_list[7] = (bnt30_relevant.loc[i]
-                                            ['Response if incorrect'])
-                        else:
-                            temp_list[7] = 'Check excel sprdsht'
+                        temp_list[7] = (bnt30_relevant.loc[i]
+                                        ['Response if incorrect'])
 
                     temp_df = pd.DataFrame([temp_list],
-                                           columns=[col for col in
+                                            columns=[col for col in
                                                     cols.columns if 'bnt30' in
                                                     col and '_' + str(i)
                                                     in col])
-                single_test = pd.concat([single_test, temp_df], axis=1)
 
+                single_test = pd.concat([single_test, temp_df], axis=1)
+                if len(single_test.columns) < 3:
+                    bnt30_script_error.append(file)
         else:
             header_error_bnt30.append([file, temp_head_errors])
     else:
-        missing_bnt30.append(file)
+        missing_bnt30_file.append(file)
+
     all_test = all_test.append(single_test)
+    all_test = all_test.drop_duplicates(['Subject', 'Date'])
+
+    bnt30_patients = pd.DataFrame()
+    bnt30_patients = all_test.groupby(all_test['Subject'].tolist(),as_index=False).size() # 109 out of 126 total
+
 all_test.to_csv('BNT30-Final.csv', encoding='utf-8')
