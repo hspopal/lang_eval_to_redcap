@@ -29,6 +29,8 @@ lang_files = find('*.xls', work_dir + '/Patients/')
 #lang_files = [work_dir +'/Patients/LastNameA_F/Adamian_Daniel/010815/adamian_lang_010815.xls']
 #lang_files = [work_dir + '/Patients/LastNameN_Z/Russell_Merrie/ClinBattery_RussellM_032210.xls']
 #lang_files = [work_dir +'/Patients/LastNameA_F/Cappello_Paul/051616/lang_eval_PC_051616.xls']
+#lang_files = ['/Users/axs97/Desktop/lang_eval_to_redcap-alexs/Patients/LastNameA_F/Asbedian_Val/asbedian_092310/AsbedianV_lang_092310.xls']
+#lang_files = ['/Users/axs97/Desktop/lang_eval_to_redcap-alexs/Patients/LastNameA_F/Bauer_Patricia/Bauerp_031010/BauerP_031010_language.xls']
 
 data = []
 
@@ -70,6 +72,30 @@ for file in lang_files:  # Iterate through every found excel file
         headers = bnt30.loc[3].tolist()
         headers[0] = 'item'
         
+        if 'Verbatim response of incorrect' in headers:
+            headers[3] = 'Verbatim response if incorrect'
+        if 'Latency' in headers:
+            headers.remove('Latency')
+            bnt30 = bnt30.drop(bnt30.columns[3], axis=1)
+        if 'Spont gesture if given (1,0)' in headers:
+            headers[4] = 'Spont gesture if given (1, 0)'
+        if 'Spont gesture if given (1, 0)' not in headers:
+            spont_col = ['', '', '', 'Spont gesture if given (1, 0)']
+            headers.insert(4, 'Spont gesture if given (1, 0)')
+            bnt30.insert(4, 'spont', '')
+            bnt30.spont[3] = 'Spont gesture if given (1, 0)'
+        if 'Correct w/stim cue (1,0)' in headers:
+            headers[5] = 'Correct w/sem cue (1,0)'
+        if 'Verbatim response of incorrect after stim cue' in headers:
+            headers[6] = 'Verbatim response if incorrect after stim cue'
+        if 'Verbatim response of incorrect after ph cue' in headers:
+            headers[8] = 'Verbatim response if incorrect after ph cue'
+        if 'Verbatim response of incorrect after ortho cue' in headers:
+            headers[8] = 'Verbatim response if incorrect after ph cue'
+        if 'Response if incorrect' not in headers:
+            headers.append('Response if incorrect')
+            bnt30['Response if incorrect'] = np.nan
+
         single_test = pd.DataFrame()
     
         # Find subject's name from file path
@@ -84,15 +110,6 @@ for file in lang_files:  # Iterate through every found excel file
         if m:
             found = m.group(1)
         single_test.ix[0, 'Subject'] = found
-        
-#        match = re.search(r'(\d\d\d\d\d\d)/', file)
-#        if match is None:
-#            date_error.append(file)
-#            #single_test.ix[1, 'Date'] = str(file[-10:-4])
-#            single_test.ix[0, 'Date'] = str("")
-#        else:
-#            date = datetime.strptime((match.group())[:-1], '%m%d%y').date()
-#            single_test.ix[0, 'Date'] = str(date)
     
         match = re.search(r'/(\d\d\d\d\d\d)/', file)
         if match is None:
