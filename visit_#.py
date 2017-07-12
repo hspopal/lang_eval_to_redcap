@@ -101,7 +101,9 @@ num_list = number['1'].tolist()
 # trying to do so that script iterates through and at each name finds out how many times the same name has come up before
 
 # solution, transport the sorted df (all_test) to a new one so that a for loop is possible so that it only counts the before names
+visitID = pd.DataFrame(columns=all_test.columns)
 
 for n in all_test.index.tolist():
-    name = all_test.loc[n]['Subject']
-    all_test[n]['Test #'] = all_test.Subject.str.contains(str(name)).sum()
+    visitID = all_test.loc[n].append(visitID)
+    name = visitID.loc[n]['Subject']
+    visitID.loc[n]['Test #'] = visitID.Subject.str.contains(str(name)).sum()
