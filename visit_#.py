@@ -103,4 +103,6 @@ for n in all_test.index.tolist():
     visitID = (row).append(visitID)
     name = all_test.loc[n]['Subject']
     visit_num = visitID.Subject.str.contains(name).sum()
+    if visit_num == 1:
+        visit_num = 'first'
     visitID.loc[n]['Redcap event'] = 'visit_' + str(visit_num)
