@@ -3,6 +3,7 @@ import csv
 import numpy as np
 import re
 from datetime import datetime
+import matplotlib.pyplot as plt
 
 import os
 import fnmatch
@@ -268,5 +269,25 @@ for file in lang_files:  # Iterate through every found excel file
 
     bnt30_patients = pd.DataFrame()
     bnt30_patients = all_test.groupby(all_test['Subject'].tolist(),as_index=False).size() # 109 out of 126 total
+
+no_bnt30 = len(missing_bnt30_file)
+captured = (len(bnt30_total))
+correct = (len(bnt30_total)-len(header_error_bnt30))
+header_error = len(header_error_bnt30)
+
+files = pd.Series([no_bnt30, captured],
+                  index=['No BNT30'+ ': ' +str(no_bnt30),
+                         'Captured Data'+ ': ' +str(captured)], name='')
+
+files_graph = files.plot.pie(title='Summary of Files: BNT30', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['r', 'g'])
+#plt.show(files_graph)
+
+correct_data = pd.Series([correct, header_error],
+                   index=['Correctly Captured'+ ': ' +str(correct),
+                          'Header Error'+ ': ' +str(header_error)], name='')
+
+data_graph = correct_data.plot.pie(title='Breakdown of Captured Data: BNT30', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['b', 'c'])
+#plt.show(data_graph)
+
 
 all_test.to_csv('BNT30-Final.csv', encoding='utf-8')
