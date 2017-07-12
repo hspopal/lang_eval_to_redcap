@@ -93,17 +93,14 @@ all_test = all_test.sort_index(by=['Subject', 'Date'], ascending=[True, True])
 all_test = all_test.reset_index()
 all_test = all_test.drop('index', 1)
 
-number = pd.DataFrame()
-number['1'] = all_test.groupby(all_test['Subject'].tolist(),as_index=False).size()
-
-num_list = number['1'].tolist()
-
 # trying to do so that script iterates through and at each name finds out how many times the same name has come up before
 
 # solution, transport the sorted df (all_test) to a new one so that a for loop is possible so that it only counts the before names
-visitID = pd.DataFrame(columns=all_test.columns)
+visitID = pd.DataFrame(columns=['Redcap event'])
 
 for n in all_test.index.tolist():
-    visitID = all_test.loc[n].append(visitID)
-    name = visitID.loc[n]['Subject']
-    visitID.loc[n]['Test #'] = visitID.Subject.str.contains(str(name)).sum()
+    row = all_test.loc[[n]]
+    visitID = (row).append(visitID)
+    name = all_test.loc[n]['Subject']
+    visit_num = visitID.Subject.str.contains(name).sum()
+    visitID.loc[n]['Redcap event'] = 'visit_' + str(visit_num)
