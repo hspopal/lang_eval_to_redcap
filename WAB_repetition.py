@@ -2,6 +2,7 @@ import pandas as pd
 import csv
 import numpy as np
 import re
+import matplotlib.pyplot as plt
 
 import os
 import fnmatch
@@ -146,5 +147,25 @@ for file in lang_files:  # Iterate through every found excel file
 
     wab_rep_patients = pd.DataFrame()
     wab_rep_patients = all_test.groupby(all_test['Subject'].tolist(),as_index=False).size() # 104 out of 126 total
-    
+
+no_wab_rep = len(missing_wab_repetition)
+captured = (len(total_wab_rep))
+correct = (len(total_wab_rep)-len(wab_rep_error))
+error = len(wab_rep_error)
+
+files = pd.Series([no_wab_rep, captured],
+                  index=['No WAB Repetition'+ ': ' +str(no_wab_rep),
+                         'Captured Data'+ ': ' +str(captured)], name='')
+
+files_graph = files.plot.pie(title='Summary of Files: WAB Repetition', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['r', 'g'])
+#plt.show(files_graph)
+
+correct_data = pd.Series([correct, error],
+                         index=['Captured Correctly'+ ': ' +str(correct),
+                                'Response Error'+ ': ' +str(error)], name='')
+
+data_graph = correct_data.plot.pie(title='Breakdown of Captured Data: WAB Repetition', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['b', 'c'])
+#plt.show(data_graph)
+
+
 all_test.to_csv('wab_rep_final.csv', encoding='utf-8')
