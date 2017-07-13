@@ -31,6 +31,7 @@ lang_files = find('*.xls', work_dir + '/Patients/')
 #lang_files = [work_dir +'/Patients/LastNameA_F/Cappello_Paul/051616/lang_eval_PC_051616.xls']
 #lang_files = ['/Users/axs97/Desktop/lang_eval_to_redcap-alexs/Patients/LastNameA_F/Asbedian_Val/asbedian_092310/AsbedianV_lang_092310.xls']
 #lang_files = ['/Users/axs97/Desktop/lang_eval_to_redcap-alexs/Patients/LastNameA_F/Bauer_Patricia/Bauerp_031010/BauerP_031010_language.xls']
+#lang_files = ['/Users/axs97/Desktop/lang_eval_to_redcap-alexs/Patients/LastNameA_F/Farnham_Sabra/092612/FarnhamS_lang_092612.xls']
 
 data = []
 
@@ -70,9 +71,15 @@ for file in lang_files:  # Iterate through every found excel file
         bnt30_total.append(file)
         bnt30 = pd.read_excel(file, 'BNT30')
         headers = bnt30.loc[3].tolist()
+        if headers[1] != 'Object':
+            headers = bnt30.loc[4].tolist()
+            if headers[1] != 'Object':
+                headers = bnt30.loc[5].tolist()
         headers[0] = 'item'
         
         if 'Verbatim response of incorrect' in headers:
+            headers[3] = 'Verbatim response if incorrect'
+        if 'Verbatim response' in headers:
             headers[3] = 'Verbatim response if incorrect'
         if 'Latency' in headers:
             headers.remove('Latency')
