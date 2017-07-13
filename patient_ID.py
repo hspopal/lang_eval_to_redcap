@@ -111,37 +111,47 @@ for file in lang_files:  # Iterate through every found excel file
     else:
         date = datetime.strptime((match.group())[1:-1], '%m%d%y').date()
         single_ID.ix[0, 'Date'] = str(date)
-        
+    
+    if single_ID['Date'] is None:
+        ID_error_date.append(file)
+            
     ID = ID.append(single_ID)
 
+ID['Subject'] = ID['Subject'].str.replace(', ', '_')
+
+ID = ID.reset_index()
+ID = ID.drop('index', axis=1)
 ID['name_first'] = ID['Subject'].str.extract('.+?_(.*)', expand=True)
-#if(pd.isnull(ID['name_first'])):
-#    ID['name_first'] = ID['Subject'].str.extract('.+?, (.*)', expand=True)
 ID['First_Initial'] = ID['name_first'].astype(str).str[0]
 ID['name_last'] = ID['Subject'].str.extract('(.*)_.+?', expand=True)
-#if ID['name_last'].isnull().bool == True:
-#    ID['name_last'] = ID['Subject'].str.extract('(.*), .+?', expand=True)
 
 ID_lower = ID['First_Initial'] + (ID['name_last'].astype
                                   (str).str[:3]) + '_'
 ID['ID'] = ID_lower.str.upper()
 
-#if ID['Date'].isnull().bool == True:
-#    ID_error_date.append(file)
-
-#if ID['name_first'].isnull().bool == True:
-#    ID_error_firstname.append(file)
-#if ID['name_last'].isnull().bool == True:
-#    ID_error_lastname.append(file)
+# Match Index: maps values from redcap[subject_id] based on values that match in redcap[name_last] and ID[name_last]
 
 redcap_relevant.set_index('Subject',inplace=True)
 redcap_relevant_map = redcap_relevant.iloc[:,0].to_dict()
 ID['PatientID']=ID.Subject.map(redcap_relevant_map)
 
 error = ID['PatientID'].isnull().sum()
+# Ronald Aprea name not in redcap (only RAPR)
+# spreadsheet name "Franklin Howard Blake"  in redcap is "Frank Howard"
+# spreadsheet name "Marlyn Casineau" in redcap is "Marilyn Casineau"
+# spreadsheet name "Denise Dipaolo"  in redcap is "Denise DiPaolo"
+# spreadsheet name "Pierre DuPont"  in redcap is "Pierre du Pont"
+# spreadsheet name "Shelley Mae Fitzgerald"  in redcap is "Shelley Fitzgerald"
+# spreadsheet name "Jeff Friedman"  in redcap is "Jeffrey Friedman"
+# spreadsheet name "Betsy Gethin"  in redcap is "Elizabeth Gethin"
+# spreadsheet name "Hughes_R_Kevin" confuses script (makes Hughes_R and R_Kevin)
+# spreadsheet name "Carl Mcpherson"  in redcap is "Carl McPherson"
+# spreadsheet name "GlennDavid Pierce"  in redcap is "Glenn Pierce"
+# spreadsheet name "Frank Newcomer"  in redcap is "Frank (Chip) Newcomer"
+# spreadsheet name "Gladys Pisierra"  in redcap is "Glady Pisierra"
+# spreadsheet name "Carol Poshpeck"  in redcap is "Carolann Poshpeck"
+# spreadsheet name "MaryEllen Richard"  in redcap is "Mary Richard"
+# spreadsheet name "Arpy Saunders"  in redcap is "Arpiar Saunders"
+# spreadsheet name "Franklin Howard Blake"  in redcap is "Frank Howard"
 
 ID.to_csv('PatientID.csv')
-
-#want pull data from redcap master['ï»¿subject_id'] based on same from name_last
-# maps values from redcap.ï»¿subject_id based on values in redcap name_last
-#column to t1 that simply maps values from t2.target based on the values in t2.letters
