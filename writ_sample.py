@@ -2,9 +2,11 @@ import pandas as pd
 import csv
 import numpy as np
 import re
+import matplotlib.pyplot as plt
 
 import os
 import fnmatch
+from datetime import datetime
 
 # Capture all subject lang files
 # Skip spreadsheets that have errors for missing tabs, or ill formatted headers
@@ -23,114 +25,225 @@ def find(pattern, path):
                 result.append(os.path.join(root, name))
     return result
 
-# lang_files = find('*.xls', work_dir + '/Patients/')
-lang_files = [work_dir +
-              '/Patients/LastNameA_F/Adamian_Daniel'
-              '/010815/adamian_lang_010815.xls']
+lang_files = find('*.xls', work_dir + '/Patients/')
+#lang_files = [work_dir +'/Patients/LastNameA_F/Adamian_Daniel/010815/adamian_lang_010815.xls']
+#lang_files = [work_dir + '/Patients/LastNameA_F/Ciccariello_Mary/022416/lang_eval_MC_022416.xls']
+#lang_files = [work_dir +'/Patients/LastNameA_F/Ahern_Timothy/060616/lang_eval_Ahern_060616.xls']
+#lang_files = [work_dir +'/Patients/LastNameA_F/Ahern_Timothy/121415/lang_eval_TA_121415.xls']
 
 data = []
 
 # cols will be used to build dataframe off of specific Redcap headers
-redcap_cols = pd.read_csv(work_dir + '/redcap_headers.csv')
+# redcap_cols = pd.read_csv(work_dir + '/redcap_headers.csv')
+redcap_cols = pd.read_csv(work_dir + '/DickersonMasterEnrollment_ImportTemplate_2017-07-17.csv')
 
 single_test = pd.DataFrame()
 count = 0
-
-missing_transcr = []
-transcr_response_error = []
+date_error = []
 
 missing_writ_sample = []
+total_writ_error = []
 sample_error = []
-
-all_trans = pd.DataFrame()
+sample_resp_numb_error = []
+all_sample = pd.DataFrame()
 
 for file in lang_files:  # Iterate through every found excel file
-    single_test = pd.DataFrame()
-
-    # Find subject's name from file path
-    single_test['Subject'] = []
-    m = re.search(work_dir + '/Patients/LastNameA_F/(.+?)/', file)
-    if m:
-        found = m.group(1)
-    m = re.search(work_dir + '/Patients/LastNameG_M/(.+?)/', file)
-    if m:
-        found = m.group(1)
-    m = re.search(work_dir + '/Patients/LastNameN_Z/(.+?)/', file)
-    if m:
-        found = m.group(1)
-    single_test.ix[0, 'Subject'] = found
-
     xl = pd.ExcelFile(file)
     sprdshts = xl.sheet_names  # see all sheet names
 
-    # Language Transcription
+    writ_sample_error = []
+        
+    # Writing Sample
 
-    if 'Writing Samples' in sprdshts:
-        writ_sample = pd.read_excel(file, 'Writing Samples', header=None)
+    if 'Writing samples' in sprdshts:
+        writ_sample = pd.read_excel(file, 'Writing samples', header=None)
+        print file
+        single_test = pd.DataFrame()
 
+        # Find subject's name from file path
+        single_test['Subject'] = []
+        m = re.search(work_dir + '/Patients/LastNameA_F/(.+?)/', file)
+        if m:
+            found = m.group(1)
+        m = re.search(work_dir + '/Patients/LastNameG_M/(.+?)/', file)
+        if m:
+            found = m.group(1)
+        m = re.search(work_dir + '/Patients/LastNameN_Z/(.+?)/', file)
+        if m:
+            found = m.group(1)
+        single_test.ix[0, 'Subject'] = found
+    
+        match = re.search(r'/(\d\d\d\d\d\d)/', file)
+        if match is None:
+            match = re.search(r'(\d\d\d\d\d\d)/', file)
+            if match is None:
+                match = re.search(r'(\d\d\d\d\d\d).xls', file)
+                if match is None:
+                    match = re.search(r'(\d\d_\d\d_\d\d)', file)
+                    if match is None:
+                        match = re.search(r'(\d\d.\d\d.\d\d)', file)
+                        if match is None:
+                            match = re.search(r'_(\d\d\d\d\d\d)', file)
+                            if match is None:
+                                date_error.append(file)
+                                single_test.ix[0, 'Date'] = ''
+                            else:
+                                date = datetime.strptime((match.group())[1:], '%m%d%y').date()
+                                single_test.ix[0, 'Date'] = str(date)
+                        else:
+                            date = datetime.strptime((match.group()), '%m.%d.%y').date()
+                            single_test.ix[0, 'Date'] = str(date)
+                    else:
+                        date = datetime.strptime((match.group()), '%m_%d_%y').date()
+                        single_test.ix[0, 'Date'] = str(date)
+                else:
+                    date = datetime.strptime((match.group())[:-4], '%m%d%y').date()
+                    single_test.ix[0, 'Date'] = str(date)
+            else:
+                date = datetime.strptime((match.group())[:-1], '%m%d%y').date()
+                single_test.ix[0, 'Date'] = str(date)
+        else:
+            date = datetime.strptime((match.group())[1:-1], '%m%d%y').date()
+            single_test.ix[0, 'Date'] = str(date)
+    
         if writ_sample.empty:
             missing_writ_sample.append(file)
         else:
             sample_items = writ_sample.index.tolist()
 
-            writ_clear = writ_sample.fillna('')
-            writ_clear = writ_clear.drop(writ_clear.columns[0], axis=1)
+            if writ_sample[0][2:6].tolist() == [1, 2, 3, 4]:
+                writ_sample[0][2:6] = np.nan
+                writ_sample[1][2:6] = np.nan
+
+            writ_clear = writ_sample
+            writ_clear = writ_clear.dropna(axis=1, how='all')
+            writ_clear.replace(to_replace=1, value='1',inplace=True)
+            writ_clear.replace(to_replace=2, value='2',inplace=True)
+            writ_clear.replace(to_replace=3, value='3',inplace=True)
+            writ_clear.replace(to_replace=4, value='4',inplace=True)
 
             if writ_clear.empty:
                 missing_writ_sample.append(file)
 
             else:
+                if writ_clear.empty == False:
+                    complete = 'yes'
+                else:
+                    complete = 'no'
+
+                transcription = [date, '', '', '', '', '', '', '', complete]
+            
                 mask = np.column_stack(
-                                        [writ_clear[col].str.startswith
-                                            (r"1.", na=False) for
-                                            col in writ_clear])
+                                       [writ_clear[col].str.startswith
+                                        (r"1.", na=False) for
+                                         col in writ_clear])
                 response1 = writ_clear.loc[mask.any(axis=1)]
-                if '2.' or '3.' or '4.' in response1:
-                    sample_error.append(file)
+                if ('2.' or '3.' or '4.' or '5.' or '6.') in response1:
+                    writ_sample_error.append('response1')
 
                 mask = np.column_stack(
                                         [writ_clear[col].str.startswith
                                             (r"2.", na=False) for
                                             col in writ_clear])
                 response2 = writ_clear.loc[mask.any(axis=1)]
-                if '1.' or '3.' or '4.' in response2:
-                    sample_error.append(file)
+                if ('1.' or '3.' or '4.' or '5.' or '6.') in response2:
+                    writ_sample_error.append('response2')
 
                 mask = np.column_stack(
                                         [writ_clear[col].str.startswith
                                             (r"3.", na=False) for
                                             col in writ_clear])
                 response3 = writ_clear.loc[mask.any(axis=1)]
-                if '1.' or '2.' or '4.' in response3:
-                    sample_error.append(file)
+                if ('1.' or '2.' or '4.' or '5.' or '6.') in response3:
+                    writ_sample_error.append('response3')
 
                 mask = np.column_stack(
                                         [writ_clear[col].str.startswith
                                             (r"4.", na=False) for
                                             col in writ_clear])
                 response4 = writ_clear.loc[mask.any(axis=1)]
-                if '1.' or '2.' or '3.' in response4:
-                    sample_error.append(file)
+                if ('1.' or '2.' or '3.' or '5.' or '6.') in response4:
+                    writ_sample_error.append('response4')
+                    
+                mask = np.column_stack(
+                                        [writ_clear[col].str.startswith
+                                            (r"Notes: picnic", na=False) for
+                                            col in writ_clear])
+                note_picnic = writ_clear.loc[mask.any(axis=1)]
+                transcription[6] = note_picnic.iloc[:, -1]
+                
+                mask = np.column_stack(
+                                        [writ_clear[col].str.startswith
+                                            (r"Notes: sent", na=False) for
+                                            col in writ_clear])
+                note_sent = writ_clear.loc[mask.any(axis=1)]
+                transcription[4] = note_sent.iloc[:,-1]
 
-                sample = ['', '', '', '', '']
-                if '1.' in str(response1.iloc[:, -1]):
-                    sample[0] = response1.iloc[:, -1]
-                if '2.' in str(response2.iloc[:, -1]):
-                    sample[1] = response2.iloc[:, -1]
-                if '3.' in str(response3.iloc[:, -1]):
-                    sample[2] = response3.iloc[:, -1]
-                if '4.' in str(response4.iloc[:, -1]):
-                    sample[3] = response4.iloc[:, -1]
+                if '1.' in str(response1.iloc[:, 0]):
+                    transcription[1] = response1.iloc[:, 0]
+                if '2.' in str(response2.iloc[:, 0]):
+                    transcription[2] = response2.iloc[:, 0]
+                if '3.' in str(response3.iloc[:, 0]):
+                    transcription[3] = response3.iloc[:, 0]
+                if '4.' in str(response4.iloc[:, 0]):
+                    transcription[5] = response4.iloc[:, 0]
 
-                trans_df = pd.DataFrame(data=[sample],
+                if len(writ_sample_error) > 0:
+                    total_writ_error.append([file, writ_sample_error])
+
+                if response1.empty and response2.empty and response3.empty and response4.empty:
+                    sample_resp_numb_error.append(file)
+                    for x in writ_clear.index:
+                        if '1' in writ_clear.loc[x].tolist():
+                            sample1 = writ_clear.loc[x].tolist()[1]
+                            transcription[1] = sample1
+                        if '2' in writ_clear.loc[x].tolist():
+                            sample2 = writ_clear.loc[x].tolist()[1]
+                            transcription[2] = sample2
+                        if '3' in writ_clear.loc[x].tolist():
+                            sample3 = writ_clear.loc[x].tolist()[1]
+                            transcription[3] = sample3
+                        if '4' in writ_clear.loc[x].tolist():
+                            sample4 = writ_clear.loc[x].tolist()[1]
+                            transcription[5] = sample4
+                    if sample1 is None and sample2.empty and sample3.empty and response4.empty
+    
+                writ_df = pd.DataFrame(data=[transcription],
                                         columns=[col for col in
                                         redcap_cols.columns
-                                        if '' in col])
-                single_test = pd.concat([single_test, trans_df], axis=1)
+                                        if 'writing_samp' in col])
+                single_test = pd.concat([single_test, writ_df], axis=1)
 
     else:
-        missing_transcr.append(file)
+        missing_writ_sample.append(file)
 
-    all_trans = all_trans.append(single_test)
+    all_sample = all_sample.append(single_test)
+    all_sample = all_sample.drop_duplicates(['Subject', 'Date'])
+''' 
+    transcr_patients = pd.DataFrame()
+    transcr_patients = all_sample.groupby(all_sample['Subject'].tolist(),as_index=False).size() # 100 out of 126 total
+
+no_trans = len(missing_writ_sample)
+captured = (len(transcription_total))
+empty_trans = len(missing_transcr)
+correct = (len(transcription_total)-len(missing_transcr)-len(sample_resp_numb_error))
+numb_error = len(sample_resp_numb_error)
+
+files = pd.Series([no_trans, captured],
+                  index=['No Lang Transcription'+ ': ' +str(no_trans),
+                         'Captured Data'+ ': ' +str(captured)], name='')
+
+files_graph = files.plot.pie(title='Summary of Files: Language Transcription', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['r', 'g'])
+#plt.show(files_graph)
+
+correct_data = pd.Series([correct, numb_error, empty_trans],
+                         index=['Captured Correctly'+ ': ' +str(correct),
+                                'Response Numbering Error'+ ': ' +str(numb_error),
+                                'Empty Trans Sheet'+ ': ' +str(empty_trans)], name='')
+
+data_graph = correct_data.plot.pie(title='Breakdown of Captured Data: Lang Transcriptions', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['b', 'c', 'y'])
+#plt.show(data_graph)
+
+'''
 # all_test = pd.concat([all_test], axis=1)
-all_trans.to_csv('writ_sample_Final.csv', encoding='utf-8')
+all_sample.to_csv('writ_sample.csv', encoding='utf-8')
