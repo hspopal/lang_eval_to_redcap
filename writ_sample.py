@@ -192,7 +192,6 @@ for file in lang_files:  # Iterate through every found excel file
                     total_writ_error.append([file, writ_sample_error])
 
                 if response1.empty and response2.empty and response3.empty and response4.empty:
-                    sample_resp_numb_error.append(file)
                     for x in writ_clear.index:
                         if '1' in writ_clear.loc[x].tolist():
                             sample1 = writ_clear.loc[x].tolist()[1]
@@ -206,7 +205,9 @@ for file in lang_files:  # Iterate through every found excel file
                         if '4' in writ_clear.loc[x].tolist():
                             sample4 = writ_clear.loc[x].tolist()[1]
                             transcription[5] = sample4
-                    if sample1 is None and sample2.empty and sample3.empty and response4.empty
+                        
+                if len(transcription[1])==0 and len(transcription[2])==0 and len(transcription[3])==0 and len(transcription[4])==0 and len(transcription[5])==0 and len(transcription[6])==0:
+                    sample_resp_numb_error.append(file)
     
                 writ_df = pd.DataFrame(data=[transcription],
                                         columns=[col for col in
