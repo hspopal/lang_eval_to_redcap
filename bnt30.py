@@ -26,17 +26,11 @@ def find(pattern, path):
     return result
 
 lang_files = find('*.xls', work_dir + '/Patients/')
-#lang_files = [work_dir +'/Patients/LastNameA_F/Adamian_Daniel/010815/adamian_lang_010815.xls']
-#lang_files = [work_dir + '/Patients/LastNameN_Z/Russell_Merrie/ClinBattery_RussellM_032210.xls']
-#lang_files = [work_dir +'/Patients/LastNameA_F/Cappello_Paul/051616/lang_eval_PC_051616.xls']
-#lang_files = ['/Users/axs97/Desktop/lang_eval_to_redcap-alexs/Patients/LastNameA_F/Asbedian_Val/asbedian_092310/AsbedianV_lang_092310.xls']
-#lang_files = ['/Users/axs97/Desktop/lang_eval_to_redcap-alexs/Patients/LastNameA_F/Bauer_Patricia/Bauerp_031010/BauerP_031010_language.xls']
-#lang_files = ['/Users/axs97/Desktop/lang_eval_to_redcap-alexs/Patients/LastNameA_F/Farnham_Sabra/092612/FarnhamS_lang_092612.xls']
 
 data = []
 
 # cols will be used to build dataframe off of specific Redcap headers
-cols = pd.read_csv(work_dir + '/redcap_headers.csv')
+cols = pd.read_csv(work_dir + '/DickersonMasterEnrollment_ImportTemplate_2017-07-17.csv')
 
 single_test = pd.DataFrame()
 count = 0
@@ -48,21 +42,13 @@ total_files = []
 bnt30_total = [] # 246
 bnt30_script_error = [] # 0
 missing_bnt30_file = [] # 47 (xls sheet does not have BNT30)
-
-missing_wab_commands = []
-missing_wab_repetition = []
-missing_wab_reading = []
-
 header_error_bnt30 = [] # 51 (typically 'if' is written 'of')
-header_error_wab_reading = []
-
-missing_transcr = []
-transcr_response_error = []
 
 all_test = pd.DataFrame()
 
 for file in lang_files:  # Iterate through every found excel file
     total_files.append(file)
+    
     # Boston Naming Test 30
     xl = pd.ExcelFile(file)
     sprdshts = xl.sheet_names  # see all sheet names
@@ -77,6 +63,7 @@ for file in lang_files:  # Iterate through every found excel file
                 headers = bnt30.loc[5].tolist()
         headers[0] = 'item'
         
+        # to compensate for header error
         if 'Verbatim response of incorrect' in headers:
             headers[3] = 'Verbatim response if incorrect'
         if 'Verbatim response' in headers:
@@ -170,7 +157,7 @@ for file in lang_files:  # Iterate through every found excel file
                 continue
             else:
                 temp_head_errors.append(head)
-        if not temp_head_errors:
+        if not temp_head_errors: # start dataframe at beginning of dataset
             bnt30_notNaN = bnt30[~pd.isnull(bnt30['Boston Naming Test'])]
             bnt30_only_items = bnt30_notNaN[pd.isnull(bnt30
                                                       ['Boston Naming Test']
@@ -190,12 +177,11 @@ for file in lang_files:  # Iterate through every found excel file
                 'Response if incorrect'
                 ]]
 
-            # items = bnt30_only_items[NaN].loc()
             bnt30_relevant = bnt30_relevant.set_index(bnt30_only_items['item'])
             bnt30_relevant.insert(5, 'notes', "")
 
             items = bnt30_relevant.index.tolist()
-            for i in items:
+            for i in items: # iterate through all words and indicate responses
                 temp_list = ['', '', '', '', '', '', '', '']
                 if i < 10:
                     # replace first value with correct string
@@ -234,6 +220,7 @@ for file in lang_files:  # Iterate through every found excel file
                         temp_list[7] = (bnt30_relevant.loc[i]
                                         ['Response if incorrect'])
 
+                    # put data from single patient into a temporary df
                     temp_df = pd.DataFrame([temp_list],
                                            columns=[col for col in cols.columns
                                                     if 'bnt30' in col and
@@ -274,12 +261,14 @@ for file in lang_files:  # Iterate through every found excel file
                         temp_list[7] = (bnt30_relevant.loc[i]
                                         ['Response if incorrect'])
 
+                    # put data from single test word into a temporary df
                     temp_df = pd.DataFrame([temp_list],
                                             columns=[col for col in
                                                     cols.columns if 'bnt30' in
                                                     col and '_' + str(i)
                                                     in col])
 
+                # add data from word to growing df of all words in test
                 single_test = pd.concat([single_test, temp_df], axis=1)
                 if len(single_test.columns) < 3:
                     bnt30_script_error.append(file)
@@ -294,6 +283,7 @@ for file in lang_files:  # Iterate through every found excel file
     bnt30_patients = pd.DataFrame()
     bnt30_patients = all_test.groupby(all_test['Subject'].tolist(),as_index=False).size() # 109 out of 126 total
 
+# find size of errors
 no_bnt30 = len(missing_bnt30_file)
 captured = (len(bnt30_total))
 correct = (len(bnt30_total)-len(header_error_bnt30))
@@ -312,6 +302,5 @@ correct_data = pd.Series([correct, header_error],
 
 data_graph = correct_data.plot.pie(title='Breakdown of Captured Data: BNT30', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['b', 'c'])
 #plt.show(data_graph)
-
 
 all_test.to_csv('BNT30-Final.csv', encoding='utf-8')
