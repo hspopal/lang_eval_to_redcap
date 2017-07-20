@@ -37,16 +37,7 @@ cols = pd.read_csv(work_dir + '/DickersonMasterEnrollment_ImportTemplate_2017-07
 count = 0
 
 date_error = []
-missing_bnt30 = []
 missing_wab_commands = []
-missing_wab_repetition = []
-missing_wab_reading = []
-
-header_error_bnt30 = []
-header_error_wab_reading = []
-
-missing_transcr = []
-transcr_response_error = []
 
 all_test = pd.DataFrame()
 
@@ -106,8 +97,8 @@ for file in lang_files:  # Iterate through every found excel file
             single_test.ix[0, 'Date'] = str(date)
 
         wab_com = pd.read_excel(file, 'WAB commands', skiprows=1)
-        wab_com_notNaN = wab_com[~pd.isnull(wab_com['Unnamed: 0'])] 
-        if len(wab_com_notNaN.columns) < 5:
+        wab_com_notNaN = wab_com[~pd.isnull(wab_com['Unnamed: 0'])] # goes to first non-Nan row
+        if len(wab_com_notNaN.columns) < 5: # add in 'notes' column if none
             wab_com_notNaN['notes'] = ''
         
         wab_com_headers = ['wab_commands_date', 'wab_hand', 'wab_hand_notes',
