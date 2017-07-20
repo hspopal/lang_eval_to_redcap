@@ -16,7 +16,6 @@ work_dir = '/Users/axs97/Desktop/lang_eval_to_redcap-alexs'
 
 os.chdir(work_dir)
 
-
 def find(pattern, path):
     result = []
     for root, dirs, files in os.walk(path):
@@ -26,14 +25,11 @@ def find(pattern, path):
     return result
 
 lang_files = find('*.xls', work_dir + '/Patients/')
-# lang_files = [work_dir +
-# '/Patients/LastNameA_F/Ciccariello_Mary
-# /022416/lang_eval_MC_022416.xls']
 
 data = []
 
 # cols will be used to build dataframe off of specific Redcap headers
-redcap_cols = pd.read_csv(work_dir + '/redcap_headers.csv')
+redcap_cols = pd.read_csv(work_dir + '/DickersonMasterEnrollment_ImportTemplate_2017-07-17.csv')
 
 single_test = pd.DataFrame()
 count = 0
@@ -42,11 +38,8 @@ date_error = []
 missing_transcr = [] # 26 (Lang Trascription sheet exists but is empty)
 missing_transcr_file = [] # 62 (file does not have 'lang trans')
 transcription_total = [] # 231
-#transcr_response_error = [] # 1230 (typically multiple transcriptions written in one cell)
 total_response_error = [] # 0
 transcr_resp_numb_error = [] # 82 (does not indicate prompt number)
-# total complete captured = 170
-# transcription_total - missing_transcr = 205 
 
 all_trans = pd.DataFrame()
 
@@ -76,7 +69,8 @@ for file in lang_files:  # Iterate through every found excel file
         if m:
             found = m.group(1)
         single_test.ix[0, 'Subject'] = found
-    
+        
+        # find date searching through different types of formats
         match = re.search(r'/(\d\d\d\d\d\d)/', file)
         if match is None:
             match = re.search(r'(\d\d\d\d\d\d)/', file)
@@ -122,6 +116,7 @@ for file in lang_files:  # Iterate through every found excel file
                 missing_transcr.append(file)
 
             else:
+                # search for cells that contain string that start with prompt number
                 mask = np.column_stack(
                                         [trans_clear[col].str.startswith
                                             (r"1.", na=False) for
@@ -226,7 +221,6 @@ correct_data = pd.Series([correct, numb_error, empty_trans],
 data_graph = correct_data.plot.pie(title='Breakdown of Captured Data: Lang Transcriptions', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['b', 'c', 'y'])
 #plt.show(data_graph)
 
-'''
+
 # all_test = pd.concat([all_test], axis=1)
 all_trans.to_csv('Lang_trans_Final.csv', encoding='utf-8')
-'''
