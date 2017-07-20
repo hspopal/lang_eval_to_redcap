@@ -31,26 +31,13 @@ lang_files = find('*.xls', work_dir + '/Patients/')
 data = []
 
 # cols will be used to build dataframe off of specific Redcap headers
-# cols = pd.read_csv(work_dir + '/redcap_headers.csv')
 cols = pd.read_csv(work_dir + '/DickersonMasterEnrollment_ImportTemplate_2017-07-17.csv')
-
-oral_single_test = pd.DataFrame()
-ddks_single_test = pd.DataFrame()
-aprax_3_single_test = pd.DataFrame()
 
 count = 0
 
-missing_bnt30 = []
-missing_wab_commands = []
-missing_wab_repetition = []
 missing_wab_reading = []
-date_error = []
-
-header_error_bnt30 = []
 header_error_wab_reading = []
-
-missing_transcr = []
-transcr_response_error = []
+date_error = []
 
 all_test = pd.DataFrame()
 
@@ -116,7 +103,7 @@ for file in lang_files:  # Iterate through every found excel file
             wab_read_comp = wab_read.iloc[0:8]
                 
             wab_read_comp_headers = []
-            for n in range(1, 9):
+            for n in range(1, 9): # create header list
                 wab_read_comp_headers.append('wab_comp_' + str(n))
                 wab_read_comp_headers.append('wab_comp_' + str(n) + '_response')
                 wab_read_comp_headers.append('wab_comp_' + str(n) + '_notes')
