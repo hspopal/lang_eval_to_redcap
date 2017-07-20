@@ -13,8 +13,6 @@ from datetime import datetime
 # Skip spreadsheets that have errors for missing tabs, or ill formatted headers
 # Create a seperate list for each error with failed subjects/files
 
-# ****** This script does not capture second trys
-
 work_dir = '/Users/axs97/Desktop/lang_eval_to_redcap-alexs'
 
 os.chdir(work_dir)
@@ -29,32 +27,19 @@ def find(pattern, path):
     return result
 
 lang_files = find('*.xls', work_dir + '/Patients/')
-# lang_files = [work_dir +
-# '/Patients/LastNameA_F/Adamian_Daniel
-# /010815/adamian_lang_010815.xls']
 
 data = []
 
 # cols will be used to build dataframe off of specific Redcap headers
-cols = pd.read_csv(work_dir + '/redcap_headers.csv')
+cols = pd.read_csv(work_dir + '/DickersonMasterEnrollment_ImportTemplate_2017-07-17.csv')
 
-single_test = pd.DataFrame()
 count = 0
 
 date_error = []
 
-missing_bnt30 = []
-
-missing_wab_commands = []
-
 total_wab_rep = [] # 231
 missing_wab_repetition = [] # 62
 wab_rep_error = [] # 0
-
-missing_wab_reading = []
-
-header_error_bnt30 = []
-header_error_wab_reading = []
 
 all_test = pd.DataFrame()
 
@@ -71,9 +56,10 @@ for file in lang_files:  # Iterate through every found excel file
         wab_rep = pd.read_excel(file, 'WAB Repetition', skiprows=1)
         wab_rep_notNaN = wab_rep[~pd.isnull(wab_rep['Unnamed: 0'])]
         wab_rep_headers = []
-        for n in range(1, 16):
+        for n in range(1, 16): # create headers
             wab_rep_headers.append('wab_repetition_'+str(n))
             wab_rep_headers.append('wab_repetition_'+str(n)+'_vrbtm')
+            wab_rep_headers.append('wab_repetition_'+str(n)+'_notes')
 
         # Find subject's name from file path
         single_test['Subject'] = []
@@ -134,6 +120,7 @@ for file in lang_files:  # Iterate through every found excel file
             temp_items.append(wab_rep_notNaN['Score'][n])
             temp_items.append(wab_rep_notNaN
                               ['Verbatim response if incorrect'][n])
+            temp_items.append('')
 
         temp_df = pd.DataFrame([temp_items], columns=wab_rep_headers)
         single_test = pd.concat([single_test, temp_df], axis=1)
