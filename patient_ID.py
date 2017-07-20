@@ -48,10 +48,8 @@ ID_error = []
 
 redcap_df = pd.read_csv(work_dir + '/DickersonMasterEnrol_DATA_2017-07-12_1344.csv')
 
-# Create a column for IDs in Redcap df that match lang spreadsheet IDs (can just be first and last name)
-
 # pull only relevant columns
-## redcap_id, event, bnt30, wab, etc.
+# redcap_id, event, bnt30, wab, etc.
 
 bnt30_col = []
 lang_col = []
@@ -61,6 +59,7 @@ relevant_columns = ['subject_id', 'Subject', 'redcap_event_name', 'name_last']
 
 redcap_relevant = redcap_df.iloc[:, 0:8]
 
+# Create a column for IDs in Redcap df that match lang spreadsheet IDs
 redcap_relevant['Subject'] = redcap_relevant["name_last"].map(str) + '_' + redcap_relevant["name_first"]
 
 for file in lang_files:  # Iterate through every found excel file
@@ -136,22 +135,5 @@ redcap_relevant_map = redcap_relevant.iloc[:,0].to_dict()
 ID['PatientID']=ID.Subject.map(redcap_relevant_map)
 
 error = ID['PatientID'].isnull().sum()
-# Ronald Aprea name not in redcap (only RAPR)
-# spreadsheet name "Franklin Howard Blake"  in redcap is "Frank Howard"
-# spreadsheet name "Marlyn Casineau" in redcap is "Marilyn Casineau"
-# spreadsheet name "Denise Dipaolo"  in redcap is "Denise DiPaolo"
-# spreadsheet name "Pierre DuPont"  in redcap is "Pierre du Pont"
-# spreadsheet name "Shelley Mae Fitzgerald"  in redcap is "Shelley Fitzgerald"
-# spreadsheet name "Jeff Friedman"  in redcap is "Jeffrey Friedman"
-# spreadsheet name "Betsy Gethin"  in redcap is "Elizabeth Gethin"
-# spreadsheet name "Hughes_R_Kevin" confuses script (makes Hughes_R and R_Kevin)
-# spreadsheet name "Carl Mcpherson"  in redcap is "Carl McPherson"
-# spreadsheet name "GlennDavid Pierce"  in redcap is "Glenn Pierce"
-# spreadsheet name "Frank Newcomer"  in redcap is "Frank (Chip) Newcomer"
-# spreadsheet name "Gladys Pisierra"  in redcap is "Glady Pisierra"
-# spreadsheet name "Carol Poshpeck"  in redcap is "Carolann Poshpeck"
-# spreadsheet name "MaryEllen Richard"  in redcap is "Mary Richard"
-# spreadsheet name "Arpy Saunders"  in redcap is "Arpiar Saunders"
-# spreadsheet name "Franklin Howard Blake"  in redcap is "Frank Howard"
 
 ID.to_csv('PatientID.csv')
