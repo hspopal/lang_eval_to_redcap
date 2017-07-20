@@ -110,11 +110,12 @@ for file in lang_files:  # Iterate through every found excel file
                            'wab_comb_pen_turn_book', 'wab_comb_pen_turn_book_notes', 'wab_comm_gen_notes']
         
         temp_items = [date]
+        # for each test prompt, add score and possible note
         for i in wab_com_notNaN.index:
             temp_items.append(wab_com_notNaN['Score'][i])
             temp_items.append(wab_com_notNaN.iloc[:,4][i])
         
-        temp_items.append('')
+        temp_items.append('') # add spot for "wab_comm_gen_notes"
         
         temp_df = pd.DataFrame([temp_items],
                                columns=wab_com_headers)
