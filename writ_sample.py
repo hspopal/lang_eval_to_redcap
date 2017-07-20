@@ -27,14 +27,12 @@ def find(pattern, path):
 
 lang_files = find('*.xls', work_dir + '/Patients/')
 #lang_files = [work_dir +'/Patients/LastNameA_F/Adamian_Daniel/010815/adamian_lang_010815.xls']
-#lang_files = [work_dir + '/Patients/LastNameA_F/Ciccariello_Mary/022416/lang_eval_MC_022416.xls']
 #lang_files = [work_dir +'/Patients/LastNameA_F/Ahern_Timothy/060616/lang_eval_Ahern_060616.xls']
 #lang_files = [work_dir +'/Patients/LastNameA_F/Ahern_Timothy/121415/lang_eval_TA_121415.xls']
 
 data = []
 
 # cols will be used to build dataframe off of specific Redcap headers
-# redcap_cols = pd.read_csv(work_dir + '/redcap_headers.csv')
 redcap_cols = pd.read_csv(work_dir + '/DickersonMasterEnrollment_ImportTemplate_2017-07-17.csv')
 
 single_test = pd.DataFrame()
@@ -42,9 +40,9 @@ count = 0
 date_error = []
 
 missing_writ_sample = []
-total_writ_error = []
+total_writ_error = [] # files that have responses with more than one prompt number (0)
 sample_error = []
-sample_resp_numb_error = []
+sample_resp_numb_error = [] # response has no prompt number indication (59)
 all_sample = pd.DataFrame()
 
 for file in lang_files:  # Iterate through every found excel file
@@ -54,7 +52,6 @@ for file in lang_files:  # Iterate through every found excel file
     writ_sample_error = []
         
     # Writing Sample
-
     if 'Writing samples' in sprdshts:
         writ_sample = pd.read_excel(file, 'Writing samples', header=None)
         print file
@@ -111,10 +108,11 @@ for file in lang_files:  # Iterate through every found excel file
         else:
             sample_items = writ_sample.index.tolist()
 
-            if writ_sample[0][2:6].tolist() == [1, 2, 3, 4]:
+            if writ_sample[0][2:6].tolist() == [1, 2, 3, 4]: # delete prompts
                 writ_sample[0][2:6] = np.nan
                 writ_sample[1][2:6] = np.nan
 
+            # make number values into string
             writ_clear = writ_sample
             writ_clear = writ_clear.dropna(axis=1, how='all')
             writ_clear.replace(to_replace=1, value='1',inplace=True)
@@ -133,6 +131,7 @@ for file in lang_files:  # Iterate through every found excel file
 
                 transcription = [date, '', '', '', '', '', '', '', complete]
             
+                # search for series that contain string that start with prompt number(i.e. '1.')
                 mask = np.column_stack(
                                        [writ_clear[col].str.startswith
                                         (r"1.", na=False) for
@@ -179,6 +178,7 @@ for file in lang_files:  # Iterate through every found excel file
                 note_sent = writ_clear.loc[mask.any(axis=1)]
                 transcription[4] = note_sent.iloc[:,-1]
 
+                # define response variable as cell with prompt number string
                 if '1.' in str(response1.iloc[:, 0]):
                     transcription[1] = response1.iloc[:, 0]
                 if '2.' in str(response2.iloc[:, 0]):
@@ -188,9 +188,11 @@ for file in lang_files:  # Iterate through every found excel file
                 if '4.' in str(response4.iloc[:, 0]):
                     transcription[5] = response4.iloc[:, 0]
 
+                # collect files that have responses with two different prompt numbers
                 if len(writ_sample_error) > 0:
                     total_writ_error.append([file, writ_sample_error])
 
+                # compensate for error: transcriptions that don't have prompt number indicator but have '1' in previous cell
                 if response1.empty and response2.empty and response3.empty and response4.empty:
                     for x in writ_clear.index:
                         if '1' in writ_clear.loc[x].tolist():
@@ -208,7 +210,8 @@ for file in lang_files:  # Iterate through every found excel file
                         
                 if len(transcription[1])==0 and len(transcription[2])==0 and len(transcription[3])==0 and len(transcription[4])==0 and len(transcription[5])==0 and len(transcription[6])==0:
                     sample_resp_numb_error.append(file)
-    
+
+                # create dataframe with data from single patient file
                 writ_df = pd.DataFrame(data=[transcription],
                                         columns=[col for col in
                                         redcap_cols.columns
@@ -220,31 +223,5 @@ for file in lang_files:  # Iterate through every found excel file
 
     all_sample = all_sample.append(single_test)
     all_sample = all_sample.drop_duplicates(['Subject', 'Date'])
-''' 
-    transcr_patients = pd.DataFrame()
-    transcr_patients = all_sample.groupby(all_sample['Subject'].tolist(),as_index=False).size() # 100 out of 126 total
 
-no_trans = len(missing_writ_sample)
-captured = (len(transcription_total))
-empty_trans = len(missing_transcr)
-correct = (len(transcription_total)-len(missing_transcr)-len(sample_resp_numb_error))
-numb_error = len(sample_resp_numb_error)
-
-files = pd.Series([no_trans, captured],
-                  index=['No Lang Transcription'+ ': ' +str(no_trans),
-                         'Captured Data'+ ': ' +str(captured)], name='')
-
-files_graph = files.plot.pie(title='Summary of Files: Language Transcription', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['r', 'g'])
-#plt.show(files_graph)
-
-correct_data = pd.Series([correct, numb_error, empty_trans],
-                         index=['Captured Correctly'+ ': ' +str(correct),
-                                'Response Numbering Error'+ ': ' +str(numb_error),
-                                'Empty Trans Sheet'+ ': ' +str(empty_trans)], name='')
-
-data_graph = correct_data.plot.pie(title='Breakdown of Captured Data: Lang Transcriptions', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['b', 'c', 'y'])
-#plt.show(data_graph)
-
-'''
-# all_test = pd.concat([all_test], axis=1)
 all_sample.to_csv('writ_sample.csv', encoding='utf-8')
