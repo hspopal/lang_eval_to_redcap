@@ -31,21 +31,9 @@ lang_files = find('*.xls', work_dir + '/Patients/')
 data = []
 
 # cols will be used to build dataframe off of specific Redcap headers
-# cols = pd.read_csv(work_dir + '/redcap_headers.csv')
 cols = pd.read_csv(work_dir + '/DickersonMasterEnrollment_ImportTemplate_2017-07-17.csv')
 
 count = 0
-
-missing_bnt30 = []
-missing_wab_commands = []
-missing_wab_repetition = []
-missing_wab_reading = []
-
-header_error_bnt30 = []
-header_error_wab_reading = []
-
-missing_transcr = []
-transcr_response_error = []
 
 spelling_total = [] # 177
 missing_spelling = [] # xls doesnt have spelling sheet (166)
@@ -148,7 +136,7 @@ for file in lang_files:  # Iterate through every found excel file
                     else:
                         complete = 'yes'
                         
-                        full_list = [date]
+                        full_list = ['', date]
             
                         # replace first value with correct string
                         for i in spelling_items:
