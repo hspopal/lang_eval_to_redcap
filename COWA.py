@@ -109,6 +109,7 @@ for file in lang_files:  # Iterate through every found excel file
         else:
             temp_df = cowa.dropna(axis=0, how='all')[:-5]
             
+            # find header error
             letter_error = []
             if 'F' not in temp_df.columns:
                 letter_error.append('F')
@@ -163,12 +164,14 @@ for file in lang_files:  # Iterate through every found excel file
                             animals, ani_total, ani_intr, ani_rep,
                             vegetables, veg_total, veg_intr, veg_rep, '', complete]
     
+                # create df for test results of one file
                 cowa_df = pd.DataFrame([temp_list], columns=[col for col in cols.columns if 'cowa_' in col])
                 single_test = pd.concat([single_test, cowa_df], axis=1)
         
     else:
         missing_cowa.append(file)
 
+    # add file data to growing df for all file data
     all_test = all_test.append(single_test)
     all_test = all_test.drop_duplicates(['Subject', 'cowa_date'])
 all_test.to_csv('COWA-final.csv', encoding='utf-8')
