@@ -31,25 +31,17 @@ lang_files = find('*.xls', work_dir + '/Patients/')
 data = []
 
 # cols will be used to build dataframe off of specific Redcap headers
-# cols = pd.read_csv(work_dir + '/redcap_headers.csv')
 cols = pd.read_csv(work_dir + '/DickersonMasterEnrollment_ImportTemplate_2017-07-17.csv')
 
 count = 0
 
 wab_read_total = []
-missing_bnt30 = []
-missing_wab_commands = []
-missing_wab_repetition = []
 missing_wab_reading = [] # file doesnt have wab reading (2)
 missing_read_comm = [] # the wab reading sheet doesnt have command test (3)
 wab_reading_comm_head_error = [] # the columns are incorrectly named (2)
 date_error = []
 
-header_error_bnt30 = []
 header_error_wab_reading = []
-
-missing_transcr = []
-transcr_response_error = []
 
 all_test = pd.DataFrame()
 
@@ -61,7 +53,7 @@ for file in lang_files:  # Iterate through every found excel file
     if 'WAB Reading' in sprdshts:
         wab_read = pd.read_excel(file, 'WAB Reading', skiprows=1)
         print file
-        wab_read_total = []
+        wab_read_total.append(file)
         # Find subject's name from file path
         single_test['Subject'] = []
         m = re.search(work_dir + '/Patients/LastNameA_F/(.+?)/', file)
@@ -120,7 +112,7 @@ for file in lang_files:  # Iterate through every found excel file
                     wab_read_comm['Unnamed: 6'] = ''
                 else:
                     wab_read_comm_headers = []
-                    for n in range(1, 7):
+                    for n in range(1, 7): # create header list
                         wab_read_comm_headers.append('wab_read_comm_'+str(n)+'_read')
                         wab_read_comm_headers.append('wab_read_comm_'+str(n)+'_perf')
                         wab_read_comm_headers.append('wab_read_comm_'+str(n)+'_notes')
@@ -130,7 +122,7 @@ for file in lang_files:  # Iterate through every found excel file
                     elif wab_read_comm.columns[4] != 'Perf score earned':
                         wab_reading_comm_head_error.append(file)
                     else:
-                        for n in range(0, 6):
+                        for n in range(0, 6): 
                             temp_items.append(wab_read_comm['Reading score earned'][n])
                             temp_items.append(wab_read_comm['Perf score earned'][n])
                             temp_items.append(wab_read_comm.iloc[:,6][n])
@@ -140,9 +132,6 @@ for file in lang_files:  # Iterate through every found excel file
         header_error_wab_reading.append(file)
     
     all_test = all_test.append(single_test)
-    
-else:
-    missing_wab_reading.append(file)
 
 all_test = all_test.drop_duplicates(['Subject', 'Date'])
 all_test.to_csv('WAB_read_comm.csv', encoding='utf-8')
