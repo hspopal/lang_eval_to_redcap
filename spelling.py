@@ -113,11 +113,13 @@ for file in lang_files:  # Iterate through every found excel file
             missing_spelling.append(file)
             complete = 'no'
         else:
+            # drop Nan columns and rows to bring notes right after data and create consistancy
             spelling_clear = spelling.dropna(axis=1, how='all')
             spelling_clear = spelling_clear.dropna(axis=0, how='all')
             if len(spelling_clear.columns) > 4:
                     spelling_column_error.append(file)
             else:
+                # reset index to create more consistancy and get limit df to data (not totals/percentages)
                 spelling_clear = spelling_clear.iloc[1:].reset_index()
                 spelling_clear = spelling_clear.drop('index', axis=1)
                 spelling_clear = spelling_clear.iloc[:12]
@@ -128,6 +130,7 @@ for file in lang_files:  # Iterate through every found excel file
                         relevant_headers = ['words', 'correct/incorrect (0/1)','response if incorrect', 'notes']
                         spelling_clear.columns = relevant_headers
                     else:
+                        # add 'notes' column if none
                         spelling_clear.columns = relevant_headers
                         spelling_clear['notes'] = ''
                     spelling_items = spelling_clear.index.tolist()
@@ -138,7 +141,7 @@ for file in lang_files:  # Iterate through every found excel file
                         
                         full_list = ['', date]
             
-                        # replace first value with correct string
+                        # create list of data that includes correct/incorrect, incorrect response, and notes
                         for i in spelling_items:
                             if spelling_clear.loc[i]['correct/incorrect (0/1)'] == 1:
                                 full_list.append('correct')
@@ -155,6 +158,8 @@ for file in lang_files:  # Iterate through every found excel file
             
                         full_list.append('')
                         full_list.append(complete)
+                        
+                        # create df with data from single patient file
                         spelling_df = pd.DataFrame([full_list],
                                                     columns=[col for col in cols.columns
                                                     if 'spelling' in col])
