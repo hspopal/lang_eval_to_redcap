@@ -30,22 +30,10 @@ lang_files = find('*.xls', work_dir + '/Patients/')
 data = []
 
 # cols will be used to build dataframe off of specific Redcap headers
-# cols = pd.read_csv(work_dir + '/redcap_headers.csv')
 cols = pd.read_csv(work_dir + '/DickersonMasterEnrollment_ImportTemplate_2017-07-17.csv')
 
 single_test = pd.DataFrame()
 count = 0
-
-missing_bnt30 = []
-missing_wab_commands = []
-missing_wab_repetition = []
-missing_wab_reading = []
-
-header_error_bnt30 = []
-header_error_wab_reading = []
-
-missing_transcr = []
-transcr_response_error = []
 
 cowa_total = []
 missing_cowa = []
@@ -80,7 +68,8 @@ for file in lang_files:  # Iterate through every found excel file
         if m:
             found = m.group(1)
         single_test.ix[0, 'Subject'] = found
-    
+        
+        # find date searching through different types of formats
         match = re.search(r'/(\d\d\d\d\d\d)/', file)
         if match is None:
             match = re.search(r'(\d\d\d\d\d\d)/', file)
@@ -136,6 +125,7 @@ for file in lang_files:  # Iterate through every found excel file
                 cowa_letter_error.append([file, letter_error])
             
             else:
+                # make list of non-Nan items in each column
                 F = str(temp_df['F'].dropna().tolist())[1:-1]
                 A = str(temp_df['A'].dropna().tolist())[1:-1]
                 S = str(temp_df['S'].dropna().tolist())[1:-1]
