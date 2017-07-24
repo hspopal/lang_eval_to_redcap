@@ -146,26 +146,18 @@ error = len(wab_rep_error)
 files = pd.Series([no_wab_rep, captured],
                   index=['No WAB Repetition'+ ': ' +str(no_wab_rep),
                          'Captured Data'+ ': ' +str(captured)], name='')
-
 files_graph = files.plot.pie(title='Summary of Files: WAB Repetition', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['r', 'g'])
 #plt.show(files_graph)
-
 correct_data = pd.Series([correct, error],
                          index=['Captured Correctly'+ ': ' +str(correct),
                                 'Response Error'+ ': ' +str(error)], name='')
-
 data_graph = correct_data.plot.pie(title='Breakdown of Captured Data: WAB Repetition', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['b', 'c'])
 #plt.show(data_graph)
 '''
 
-graph = pd.DataFrame()
-graph['Test'] = 'WAB Repetition'
-graph['Correct'] = correct
-graph['File missing test'] = no_wab_rep
-graph['Empty test'] = np.nan
-graph['Header error'] = error
-graph['Response numbering error'] = np.nan
-graph['Column number error'] = np.nan
-graph['Test length error'] = np.nan
+col_list = ['Test', 'Correct','File missing test', 'Empty test', 'Header error', 'Response numbering error', 'Column number error', 'Test length error']
+col_data = ['WAB Repetition',correct,no_wab_rep,np.nan,error,np.nan,np.nan,np.nan]
+graph = pd.DataFrame(data =[col_data], columns=col_list)
+graph = graph.set_index(['Test'])
 
 graph.to_csv('wab_rep_graph.csv', encoding='utf-8')
