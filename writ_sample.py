@@ -41,6 +41,7 @@ date_error = []
 
 writ_sample_total = []
 missing_writ_sample = []
+empty_writ_sample = []
 total_writ_error = [] # files that have responses with more than one prompt number (0)
 sample_resp_numb_error = [] # response has no prompt number indication (59)
 all_sample = pd.DataFrame()
@@ -54,7 +55,7 @@ for file in lang_files:  # Iterate through every found excel file
     # Writing Sample
     if 'Writing samples' in sprdshts:
         writ_sample = pd.read_excel(file, 'Writing samples', header=None)
-        writ_sample_total.append()
+        writ_sample_total.append(file)
         print file
         single_test = pd.DataFrame()
 
@@ -122,7 +123,7 @@ for file in lang_files:  # Iterate through every found excel file
             writ_clear.replace(to_replace=4, value='4',inplace=True)
 
             if writ_clear.empty:
-                missing_writ_sample.append(file)
+                empty_writ_sample.append(file)
 
             else:
                 if writ_clear.empty == False:
@@ -230,10 +231,24 @@ all_sample.to_csv('writ_sample.csv', encoding='utf-8')
 # find size of errors
 no_writ_sample = len(missing_writ_sample)
 captured = (len(writ_sample_total))
+empty = len(empty_writ_sample)
 correct = (len(writ_sample_total)-len(sample_resp_numb_error)-len(total_writ_error))
 numb_error = len(sample_resp_numb_error)
 response_error = len(total_writ_error)
 
+graph = pd.DataFrame()
+graph['Test'] = 'Writing Sample'
+graph['Correct'] = correct
+graph['File missing test'] = no_writ_sample
+graph['Empty test'] = empty
+graph['Header error'] = np.nan
+graph['Response numbering error'] = numb_error
+graph['Column number error'] = np.nan
+graph['Test length error'] = np.nan
+
+graph.to_csv('writ_sample_graph.csv', encoding='utf-8')
+
+'''
 files = pd.Series([writ_sample_total, captured],
                   index=['No Writing Sample'+ ': ' +str(missing_writ_sample),
                          'Captured Data'+ ': ' +str(captured)], name='')
@@ -248,3 +263,4 @@ correct_data = pd.Series([correct, numb_error, total_writ_error],
 
 data_graph = correct_data.plot.pie(title='Breakdown of Captured Data: Writing Sample', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['b', 'c', 'y'])
 #plt.show(data_graph)
+'''
