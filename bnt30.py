@@ -295,26 +295,18 @@ header_error = len(header_error_bnt30)
 files = pd.Series([no_bnt30, captured],
                   index=['No BNT30'+ ': ' +str(no_bnt30),
                          'Captured Data'+ ': ' +str(captured)], name='')
-
 files_graph = files.plot.pie(title='Summary of Files: BNT30', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['r', 'g'])
 #plt.show(files_graph)
-
 correct_data = pd.Series([correct, header_error],
                    index=['Correctly Captured'+ ': ' +str(correct),
                           'Header Error'+ ': ' +str(header_error)], name='')
-
 data_graph = correct_data.plot.pie(title='Breakdown of Captured Data: BNT30', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['b', 'c'])
 #plt.show(data_graph)
 '''
 
-graph = pd.DataFrame()
-graph['Test'] = 'BNT30'
-graph['Correct'] = correct
-graph['File missing test'] = no_bnt30
-graph['Empty test'] = np.nan
-graph['Header error'] = header_error
-graph['Response numbering error'] = np.nan
-graph['Column number error'] = np.nan
-graph['Test length error'] = np.nan
+col_list = ['Test', 'Correct','File missing test', 'Empty test', 'Header error', 'Response numbering error', 'Column number error', 'Test length error']
+col_data = ['BNT30', correct, no_bnt30, np.nan, header_error, np.nan, np.nan, np.nan]
+graph = pd.DataFrame(data=[col_data], columns=col_list)
+graph = graph.set_index(['Test'])
 
 graph.to_csv('bnt30_graph.csv', encoding='utf-8')
