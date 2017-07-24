@@ -143,6 +143,19 @@ correct = (len(wab_read_total)-len(wab_reading_comm_head_error)-len(missing_read
 missing_comm = len(missing_read_comm)
 header_error = len(wab_reading_comm_head_error)
 
+graph = pd.DataFrame()
+graph['Test'] = 'WAB Reading Command'
+graph['Correct'] = correct
+graph['File missing test'] = no_wab_read
+graph['Empty test'] = missing_comm
+graph['Header error'] = header_error
+graph['Response numbering error'] = np.nan
+graph['Column number error'] = np.nan
+graph['Test length error'] = np.nan
+
+graph.to_csv('wab_read_comm_graph.csv', encoding='utf-8')
+
+'''
 files = pd.Series([no_wab_read, captured],
                   index=['No WAB Reading'+ ': ' +str(no_wab_read),
                          'Captured Data'+ ': ' +str(captured)], name='')
@@ -157,3 +170,4 @@ correct_data = pd.Series([correct, header_error, missing_comm],
 
 data_graph = correct_data.plot.pie(title='Breakdown of Captured Data: WAB Reading Command', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['b', 'c', 'y'])
 #plt.show(data_graph)
+'''
