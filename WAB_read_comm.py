@@ -31,7 +31,7 @@ lang_files = find('*.xls', work_dir + '/Patients/')
 data = []
 
 # cols will be used to build dataframe off of specific Redcap headers
-cols = pd.read_csv(work_dir + '/DickersonMasterEnrollment_ImportTemplate_2017-07-17.csv')
+cols = pd.read_csv(work_dir + '/DickersonMasterEnrollment_ImportTemplate_2017-07-24.csv')
 
 count = 0
 
@@ -135,3 +135,25 @@ for file in lang_files:  # Iterate through every found excel file
 
 all_test = all_test.drop_duplicates(['Subject', 'Date'])
 all_test.to_csv('WAB_read_comm.csv', encoding='utf-8')
+
+# find size of errors
+no_wab_read = len(missing_wab_reading)
+captured = (len(wab_read_total))
+correct = (len(wab_read_total)-len(wab_reading_comm_head_error)-len(missing_read_comm))
+missing_comm = len(missing_read_comm)
+header_error = len(wab_reading_comm_head_error)
+
+files = pd.Series([no_wab_read, captured],
+                  index=['No WAB Reading'+ ': ' +str(no_wab_read),
+                         'Captured Data'+ ': ' +str(captured)], name='')
+
+files_graph = files.plot.pie(title='Summary of Files: WAB Reading Commmand', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['r', 'g'])
+#plt.show(files_graph)
+
+correct_data = pd.Series([correct, header_error, missing_comm],
+                   index=['Correctly Captured'+ ': ' +str(correct),
+                          'Header Error'+ ': ' +str(header_error), 
+                          'Missing WAB Reading Command'+ ': ' +str(missing_comm)], name='')
+
+data_graph = correct_data.plot.pie(title='Breakdown of Captured Data: WAB Reading Command', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['b', 'c', 'y'])
+#plt.show(data_graph)
