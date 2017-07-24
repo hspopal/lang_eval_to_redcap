@@ -283,6 +283,8 @@ for file in lang_files:  # Iterate through every found excel file
     bnt30_patients = pd.DataFrame()
     bnt30_patients = all_test.groupby(all_test['Subject'].tolist(),as_index=False).size() # 109 out of 126 total
 
+all_test.to_csv('BNT30-Final.csv', encoding='utf-8')
+
 # find size of errors
 no_bnt30 = len(missing_bnt30_file)
 captured = (len(bnt30_total))
@@ -302,5 +304,3 @@ correct_data = pd.Series([correct, header_error],
 
 data_graph = correct_data.plot.pie(title='Breakdown of Captured Data: BNT30', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['b', 'c'])
 #plt.show(data_graph)
-
-all_test.to_csv('BNT30-Final.csv', encoding='utf-8')
