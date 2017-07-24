@@ -31,12 +31,14 @@ lang_files = find('*.xls', work_dir + '/Patients/')
 data = []
 
 # cols will be used to build dataframe off of specific Redcap headers
-cols = pd.read_csv(work_dir + '/DickersonMasterEnrollment_ImportTemplate_2017-07-17.csv')
+cols = pd.read_csv(work_dir + '/DickersonMasterEnrollment_ImportTemplate_2017-07-24.csv')
 
 count = 0
 
+wab_read_total = []
 missing_wab_reading = []
 header_error_wab_reading = []
+missing_read_comp = []
 date_error = []
 
 all_test = pd.DataFrame()
@@ -49,6 +51,7 @@ for file in lang_files:  # Iterate through every found excel file
     # WAB Reading Comprehension
     if 'WAB Reading' in sprdshts:
         wab_read = pd.read_excel(file, 'WAB Reading', skiprows=1)
+        wab_read_total.append(file)
         print file
         
         # Find subject's name from file path
@@ -101,7 +104,10 @@ for file in lang_files:  # Iterate through every found excel file
             missing_wab_reading.append(file)
         else:
             wab_read_comp = wab_read.iloc[0:8]
-                
+            
+            if wab_read_comp.empty:
+                missing_read_comp.append(file)
+            
             wab_read_comp_headers = []
             for n in range(1, 9): # create header list
                 wab_read_comp_headers.append('wab_comp_' + str(n))
@@ -135,3 +141,25 @@ for file in lang_files:  # Iterate through every found excel file
     all_test = all_test.drop_duplicates(['Subject', 'Date'])
     
 all_test.to_csv('WAB_read_comp.csv', encoding='utf-8')
+
+# find size of errors
+no_wab_read = len(missing_wab_reading)
+captured = (len(wab_read_total))
+correct = (len(wab_read_total)-len(header_error_wab_reading)-len(missing_read_comp))
+missing_comp = len(missing_read_comp)
+header_error = len(header_error_wab_reading)
+'''
+files = pd.Series([no_wab_read, captured],
+                  index=['No WAB Reading'+ ': ' +str(no_wab_read),
+                         'Captured Data'+ ': ' +str(captured)], name='')
+
+files_graph = files.plot.pie(title='Summary of Files: WAB Reading Comprehension', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['r', 'g'])
+#plt.show(files_graph)
+'''
+correct_data = pd.Series([correct, header_error, missing_comp],
+                   index=['Correctly Captured'+ ': ' +str(correct),
+                          'Header Error'+ ': ' +str(header_error), 
+                          'Missing WAB Reading Comprehension'+ ': ' +str(missing_comp)], name='')
+
+data_graph = correct_data.plot.pie(title='Breakdown of Captured Data: WAB Reading Comprehension', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['b', 'c', 'y'])
+#plt.show(data_graph)
