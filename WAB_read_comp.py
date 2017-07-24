@@ -149,15 +149,10 @@ correct = (len(wab_read_total)-len(header_error_wab_reading)-len(missing_read_co
 missing_comp = len(missing_read_comp)
 header_error = len(header_error_wab_reading)
 
-graph = pd.DataFrame()
-graph['Test'] = 'WAB Reading Comprehension'
-graph['Correct'] = correct
-graph['File missing test'] = no_wab_read
-graph['Empty test'] = missing_comp
-graph['Header error'] = header_error
-graph['Response numbering error'] = np.nan
-graph['Column number error'] = np.nan
-graph['Test length error'] = np.nan
+col_list = ['Test', 'Correct','File missing test', 'Empty test', 'Header error', 'Response numbering error', 'Column number error', 'Test length error']
+col_data = ['WAB Reading Comprehension',correct,no_wab_read,missing_comp,header_error,np.nan,np.nan,np.nan]
+graph = pd.DataFrame(data =[col_data], columns=col_list)
+graph = graph.set_index(['Test'])
 
 graph.to_csv('wab_read_comp_graph.csv', encoding='utf-8')
 
@@ -167,12 +162,10 @@ files = pd.Series([no_wab_read, captured],
                          'Captured Data'+ ': ' +str(captured)], name='')
 files_graph = files.plot.pie(title='Summary of Files: WAB Reading Comprehension', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['r', 'g'])
 #plt.show(files_graph)
-
 correct_data = pd.Series([correct, header_error, missing_comp],
                    index=['Correctly Captured'+ ': ' +str(correct),
                           'Header Error'+ ': ' +str(header_error), 
                           'Missing WAB Reading Comprehension'+ ': ' +str(missing_comp)], name='')
-
 data_graph = correct_data.plot.pie(title='Breakdown of Captured Data: WAB Reading Comprehension', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['b', 'c', 'y'])
 #plt.show(data_graph)
 '''
