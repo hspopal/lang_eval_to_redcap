@@ -184,15 +184,10 @@ correct = (len(cowa_total)-len(cowa_letter_error))
 empty = len(empty_cowa)
 letter_error = len(cowa_letter_error)
 
-graph = pd.DataFrame()
-graph['Test'] = 'COWA'
-graph['Correct'] = correct
-graph['File missing test'] = no_cowa
-graph['Empty test'] = empty
-graph['Header error'] = letter_error
-graph['Response numbering error'] = np.nan
-graph['Column number error'] = np.nan
-graph['Test length error'] = np.nan
+col_list = ['Test', 'Correct','File missing test', 'Empty test', 'Header error', 'Response numbering error', 'Column number error', 'Test length error']
+col_data = ['COWA',correct,no_cowa,empty,letter_error,np.nan,np.nan,np.nan]
+graph = pd.DataFrame(data =[col_data], columns=col_list)
+graph = graph.set_index(['Test'])
 
 graph.to_csv('cowa_graph.csv', encoding='utf-8')
 
@@ -202,11 +197,9 @@ files = pd.Series([no_cowa, captured],
                          'Captured Data'+ ': ' +str(captured)], name='')
 files_graph = files.plot.pie(title='Summary of Files: COWA', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['r', 'g'])
 #plt.show(files_graph)
-
 correct_data = pd.Series([correct, letter_error],
                    index=['Correctly Captured'+ ': ' +str(correct),
                           'Letter Error'+ ': ' +str(letter_error)], name='')
-
 data_graph = correct_data.plot.pie(title='Breakdown of Captured Data: COWA', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['b', 'c'])
 plt.show(data_graph)
 '''
