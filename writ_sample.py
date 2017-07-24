@@ -236,15 +236,10 @@ correct = (len(writ_sample_total)-len(sample_resp_numb_error)-len(total_writ_err
 numb_error = len(sample_resp_numb_error)
 response_error = len(total_writ_error)
 
-graph = pd.DataFrame()
-graph['Test'] = 'Writing Sample'
-graph['Correct'] = correct
-graph['File missing test'] = no_writ_sample
-graph['Empty test'] = empty
-graph['Header error'] = np.nan
-graph['Response numbering error'] = numb_error
-graph['Column number error'] = np.nan
-graph['Test length error'] = np.nan
+col_list = ['Test', 'Correct','File missing test', 'Empty test', 'Header error', 'Response numbering error', 'Column number error', 'Test length error']
+col_data = ['Writing Sample',correct, no_writ_sample,empty,np.nan,numb_error,np.nan,np.nan]
+graph = pd.DataFrame(data =[col_data], columns=col_list)
+graph = graph.set_index(['Test'])
 
 graph.to_csv('writ_sample_graph.csv', encoding='utf-8')
 
