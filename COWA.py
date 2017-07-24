@@ -37,7 +37,8 @@ count = 0
 
 cowa_total = []
 missing_cowa = []
-cowa_letter_error = []
+cowa_letter_error = [] # header error
+empty_cowa = []
 date_error = []
 
 cowa_df = pd.DataFrame()
@@ -105,7 +106,7 @@ for file in lang_files:  # Iterate through every found excel file
             single_test.ix[0, 'Date'] = str(date)
 
         if cowa.empty:
-            missing_cowa.append(file)
+            empty_cowa.append(file)
         else:
             temp_df = cowa.dropna(axis=0, how='all')[:-5]
             
@@ -180,16 +181,27 @@ all_test.to_csv('COWA-final.csv', encoding='utf-8')
 no_cowa = len(missing_cowa)
 captured = (len(cowa_total))
 correct = (len(cowa_total)-len(cowa_letter_error))
+empty = len(empty_cowa)
 letter_error = len(cowa_letter_error)
+
+graph = pd.DataFrame()
+graph['Test'] = 'COWA'
+graph['Correct'] = correct
+graph['File missing test'] = no_cowa
+graph['Empty test'] = empty
+graph['Header error'] = letter_error
+graph['Response numbering error'] = np.nan
+graph['Column number error'] = np.nan
+graph['Test length error'] = np.nan
+
+graph.to_csv('cowa_graph.csv', encoding='utf-8')
 
 '''
 files = pd.Series([no_cowa, captured],
                   index=['No COWA'+ ': ' +str(no_cowa),
                          'Captured Data'+ ': ' +str(captured)], name='')
-
 files_graph = files.plot.pie(title='Summary of Files: COWA', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['r', 'g'])
 #plt.show(files_graph)
-'''
 
 correct_data = pd.Series([correct, letter_error],
                    index=['Correctly Captured'+ ': ' +str(correct),
@@ -197,3 +209,4 @@ correct_data = pd.Series([correct, letter_error],
 
 data_graph = correct_data.plot.pie(title='Breakdown of Captured Data: COWA', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['b', 'c'])
 plt.show(data_graph)
+'''
