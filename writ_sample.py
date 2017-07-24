@@ -33,15 +33,15 @@ lang_files = find('*.xls', work_dir + '/Patients/')
 data = []
 
 # cols will be used to build dataframe off of specific Redcap headers
-redcap_cols = pd.read_csv(work_dir + '/DickersonMasterEnrollment_ImportTemplate_2017-07-17.csv')
+redcap_cols = pd.read_csv(work_dir + '/DickersonMasterEnrollment_ImportTemplate_2017-07-24.csv')
 
 single_test = pd.DataFrame()
 count = 0
 date_error = []
 
+writ_sample_total = []
 missing_writ_sample = []
 total_writ_error = [] # files that have responses with more than one prompt number (0)
-sample_error = []
 sample_resp_numb_error = [] # response has no prompt number indication (59)
 all_sample = pd.DataFrame()
 
@@ -54,6 +54,7 @@ for file in lang_files:  # Iterate through every found excel file
     # Writing Sample
     if 'Writing samples' in sprdshts:
         writ_sample = pd.read_excel(file, 'Writing samples', header=None)
+        writ_sample_total.append()
         print file
         single_test = pd.DataFrame()
 
@@ -225,3 +226,25 @@ for file in lang_files:  # Iterate through every found excel file
     all_sample = all_sample.drop_duplicates(['Subject', 'Date'])
 
 all_sample.to_csv('writ_sample.csv', encoding='utf-8')
+
+# find size of errors
+no_writ_sample = len(missing_writ_sample)
+captured = (len(writ_sample_total))
+correct = (len(writ_sample_total)-len(sample_resp_numb_error)-len(total_writ_error))
+numb_error = len(sample_resp_numb_error)
+response_error = len(total_writ_error)
+
+files = pd.Series([writ_sample_total, captured],
+                  index=['No Writing Sample'+ ': ' +str(missing_writ_sample),
+                         'Captured Data'+ ': ' +str(captured)], name='')
+
+files_graph = files.plot.pie(title='Summary of Files: Writing Sample', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['r', 'g'])
+#plt.show(files_graph)
+
+correct_data = pd.Series([correct, numb_error, total_writ_error],
+                   index=['Correctly Captured'+ ': ' +str(correct),
+                          'Numbering Error'+ ': ' +str(numb_error), 
+                          'Response Error'+ ': ' +str(total_writ_error)], name='')
+
+data_graph = correct_data.plot.pie(title='Breakdown of Captured Data: Writing Sample', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['b', 'c', 'y'])
+#plt.show(data_graph)
