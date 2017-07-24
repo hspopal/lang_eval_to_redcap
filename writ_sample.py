@@ -2,11 +2,11 @@ import pandas as pd
 import csv
 import numpy as np
 import re
-import matplotlib.pyplot as plt
 
 import os
 import fnmatch
 from datetime import datetime
+import matplotlib.pyplot as plt
 
 # Capture all subject lang files
 # Skip spreadsheets that have errors for missing tabs, or ill formatted headers
@@ -26,39 +26,36 @@ def find(pattern, path):
     return result
 
 lang_files = find('*.xls', work_dir + '/Patients/')
-#lang_files = [work_dir +'/Patients/LastNameA_F/Adamian_Daniel/010815/adamian_lang_010815.xls']
-#lang_files = [work_dir +'/Patients/LastNameA_F/Ahern_Timothy/060616/lang_eval_Ahern_060616.xls']
-#lang_files = [work_dir +'/Patients/LastNameA_F/Ahern_Timothy/121415/lang_eval_TA_121415.xls']
+#lang_files = [work_dir + '/Patients/LastNameA_F/Adamian_Daniel/010815/adamian_lang_010815.xls']
 
 data = []
 
 # cols will be used to build dataframe off of specific Redcap headers
-redcap_cols = pd.read_csv(work_dir + '/DickersonMasterEnrollment_ImportTemplate_2017-07-24.csv')
+cols = pd.read_csv(work_dir + '/DickersonMasterEnrollment_ImportTemplate_2017-07-24.csv')
 
-single_test = pd.DataFrame()
 count = 0
+
+spelling_total = [] # 177
+empty_spelling = []
+missing_spelling = [] # xls doesnt have spelling sheet (166)
+spelling_error = [] # too few columns (4)
+spelling_column_error = [] # too many columns (possibly old test or too many notes) (4)
+spelling_length_error = [] # not enough or too many words tested (1)
+header_error_spelling = [] 
 date_error = []
 
-writ_sample_total = []
-missing_writ_sample = []
-empty_writ_sample = []
-total_writ_error = [] # files that have responses with more than one prompt number (0)
-sample_resp_numb_error = [] # response has no prompt number indication (59)
-all_sample = pd.DataFrame()
+all_test = pd.DataFrame()
 
 for file in lang_files:  # Iterate through every found excel file
+    single_test = pd.DataFrame()
     xl = pd.ExcelFile(file)
     sprdshts = xl.sheet_names  # see all sheet names
-
-    writ_sample_error = []
-        
-    # Writing Sample
-    if 'Writing samples' in sprdshts:
-        writ_sample = pd.read_excel(file, 'Writing samples', header=None)
-        writ_sample_total.append(file)
+    
+    if 'Spelling' in sprdshts:
         print file
-        single_test = pd.DataFrame()
-
+        spelling_total.append(file)
+        spelling = pd.read_excel(file, 'Spelling')
+        
         # Find subject's name from file path
         single_test['Subject'] = []
         m = re.search(work_dir + '/Patients/LastNameA_F/(.+?)/', file)
@@ -71,7 +68,7 @@ for file in lang_files:  # Iterate through every found excel file
         if m:
             found = m.group(1)
         single_test.ix[0, 'Subject'] = found
-    
+
         match = re.search(r'/(\d\d\d\d\d\d)/', file)
         if match is None:
             match = re.search(r'(\d\d\d\d\d\d)/', file)
@@ -104,163 +101,113 @@ for file in lang_files:  # Iterate through every found excel file
         else:
             date = datetime.strptime((match.group())[1:-1], '%m%d%y').date()
             single_test.ix[0, 'Date'] = str(date)
-    
-        if writ_sample.empty:
-            missing_writ_sample.append(file)
+
+        relevant_headers = [
+            'words',
+            'correct/incorrect (0/1)',
+            'response if incorrect'
+            ]
+
+        temp_head_errors = []
+
+        if spelling.empty:
+            empty_spelling.append(file)
+            complete = 'no'
         else:
-            sample_items = writ_sample.index.tolist()
-
-            if writ_sample[0][2:6].tolist() == [1, 2, 3, 4]: # delete prompts
-                writ_sample[0][2:6] = np.nan
-                writ_sample[1][2:6] = np.nan
-
-            # make number values into string
-            writ_clear = writ_sample
-            writ_clear = writ_clear.dropna(axis=1, how='all')
-            writ_clear.replace(to_replace=1, value='1',inplace=True)
-            writ_clear.replace(to_replace=2, value='2',inplace=True)
-            writ_clear.replace(to_replace=3, value='3',inplace=True)
-            writ_clear.replace(to_replace=4, value='4',inplace=True)
-
-            if writ_clear.empty:
-                empty_writ_sample.append(file)
-
+            # drop Nan columns and rows to bring notes right after data and create consistancy
+            spelling_clear = spelling.dropna(axis=1, how='all')
+            spelling_clear = spelling_clear.dropna(axis=0, how='all')
+            if len(spelling_clear.columns) > 4:
+                    spelling_column_error.append(file)
             else:
-                if writ_clear.empty == False:
-                    complete = 'yes'
+                # reset index to create more consistancy and get limit df to data (not totals/percentages)
+                spelling_clear = spelling_clear.iloc[1:].reset_index()
+                spelling_clear = spelling_clear.drop('index', axis=1)
+                spelling_clear = spelling_clear.iloc[:12]
+                if len(spelling_clear.columns) < 3:
+                    spelling_error.append(file)
                 else:
-                    complete = 'no'
-
-                transcription = [date, '', '', '', '', '', '', '', complete]
-            
-                # search for series that contain string that start with prompt number(i.e. '1.')
-                mask = np.column_stack(
-                                       [writ_clear[col].str.startswith
-                                        (r"1.", na=False) for
-                                         col in writ_clear])
-                response1 = writ_clear.loc[mask.any(axis=1)]
-                if ('2.' or '3.' or '4.' or '5.' or '6.') in response1:
-                    writ_sample_error.append('response1')
-
-                mask = np.column_stack(
-                                        [writ_clear[col].str.startswith
-                                            (r"2.", na=False) for
-                                            col in writ_clear])
-                response2 = writ_clear.loc[mask.any(axis=1)]
-                if ('1.' or '3.' or '4.' or '5.' or '6.') in response2:
-                    writ_sample_error.append('response2')
-
-                mask = np.column_stack(
-                                        [writ_clear[col].str.startswith
-                                            (r"3.", na=False) for
-                                            col in writ_clear])
-                response3 = writ_clear.loc[mask.any(axis=1)]
-                if ('1.' or '2.' or '4.' or '5.' or '6.') in response3:
-                    writ_sample_error.append('response3')
-
-                mask = np.column_stack(
-                                        [writ_clear[col].str.startswith
-                                            (r"4.", na=False) for
-                                            col in writ_clear])
-                response4 = writ_clear.loc[mask.any(axis=1)]
-                if ('1.' or '2.' or '3.' or '5.' or '6.') in response4:
-                    writ_sample_error.append('response4')
-                    
-                mask = np.column_stack(
-                                        [writ_clear[col].str.startswith
-                                            (r"Notes: picnic", na=False) for
-                                            col in writ_clear])
-                note_picnic = writ_clear.loc[mask.any(axis=1)]
-                transcription[6] = note_picnic.iloc[:, -1]
-                
-                mask = np.column_stack(
-                                        [writ_clear[col].str.startswith
-                                            (r"Notes: sent", na=False) for
-                                            col in writ_clear])
-                note_sent = writ_clear.loc[mask.any(axis=1)]
-                transcription[4] = note_sent.iloc[:,-1]
-
-                # define response variable as cell with prompt number string
-                if '1.' in str(response1.iloc[:, 0]):
-                    transcription[1] = response1.iloc[:, 0]
-                if '2.' in str(response2.iloc[:, 0]):
-                    transcription[2] = response2.iloc[:, 0]
-                if '3.' in str(response3.iloc[:, 0]):
-                    transcription[3] = response3.iloc[:, 0]
-                if '4.' in str(response4.iloc[:, 0]):
-                    transcription[5] = response4.iloc[:, 0]
-
-                # collect files that have responses with two different prompt numbers
-                if len(writ_sample_error) > 0:
-                    total_writ_error.append([file, writ_sample_error])
-
-                # compensate for error: transcriptions that don't have prompt number indicator but have '1' in previous cell
-                if response1.empty and response2.empty and response3.empty and response4.empty:
-                    for x in writ_clear.index:
-                        if '1' in writ_clear.loc[x].tolist():
-                            sample1 = writ_clear.loc[x].tolist()[1]
-                            transcription[1] = sample1
-                        if '2' in writ_clear.loc[x].tolist():
-                            sample2 = writ_clear.loc[x].tolist()[1]
-                            transcription[2] = sample2
-                        if '3' in writ_clear.loc[x].tolist():
-                            sample3 = writ_clear.loc[x].tolist()[1]
-                            transcription[3] = sample3
-                        if '4' in writ_clear.loc[x].tolist():
-                            sample4 = writ_clear.loc[x].tolist()[1]
-                            transcription[5] = sample4
+                    if len(spelling_clear.columns) > 3:
+                        relevant_headers = ['words', 'correct/incorrect (0/1)','response if incorrect', 'notes']
+                        spelling_clear.columns = relevant_headers
+                    else:
+                        # add 'notes' column if none
+                        spelling_clear.columns = relevant_headers
+                        spelling_clear['notes'] = ''
+                    spelling_items = spelling_clear.index.tolist()
+                    if len(spelling_items) != 12:
+                        spelling_length_error.append(file)
+                    else:
+                        complete = 'yes'
                         
-                if len(transcription[1])==0 and len(transcription[2])==0 and len(transcription[3])==0 and len(transcription[4])==0 and len(transcription[5])==0 and len(transcription[6])==0:
-                    sample_resp_numb_error.append(file)
-
-                # create dataframe with data from single patient file
-                writ_df = pd.DataFrame(data=[transcription],
-                                        columns=[col for col in
-                                        redcap_cols.columns
-                                        if 'writing_samp' in col])
-                single_test = pd.concat([single_test, writ_df], axis=1)
-
+                        full_list = ['', date]
+            
+                        # create list of data that includes correct/incorrect, incorrect response, and notes
+                        for i in spelling_items:
+                            if spelling_clear.loc[i]['correct/incorrect (0/1)'] == 1:
+                                full_list.append('correct')
+                                full_list.append('')
+                                full_list.append(spelling_clear.loc[i]['notes'])
+                            elif spelling_clear.loc[i]['correct/incorrect (0/1)'] == 0:
+                                full_list.append('incorrect')
+                                full_list.append(spelling_clear.loc[i]['response if incorrect'])
+                                full_list.append(spelling_clear.loc[i]['notes'])
+                            else:
+                                full_list.append('none')
+                                full_list.append('')
+                                full_list.append(spelling_clear.loc[i]['notes'])
+            
+                        full_list.append('')
+                        full_list.append(complete)
+                        
+                        # create df with data from single patient file
+                        spelling_df = pd.DataFrame([full_list],
+                                                    columns=[col for col in cols.columns
+                                                    if 'spelling' in col])
+                        single_test = pd.concat([single_test, spelling_df], axis=1)
     else:
-        missing_writ_sample.append(file)
+        missing_spelling.append(file)
 
-    all_sample = all_sample.append(single_test)
-    all_sample = all_sample.drop_duplicates(['Subject', 'Date'])
+    all_test = all_test.append(single_test)
 
-all_sample.to_csv('writ_sample.csv', encoding='utf-8')
+all_test = all_test.drop_duplicates(['Subject', 'Date'])
+all_test.to_csv('spelling-Final.csv', encoding='utf-8')
 
 # find size of errors
-no_writ_sample = len(missing_writ_sample)
-captured = (len(writ_sample_total))
-empty = len(empty_writ_sample)
-correct = (len(writ_sample_total)-len(sample_resp_numb_error)-len(total_writ_error))
-numb_error = len(sample_resp_numb_error)
-response_error = len(total_writ_error)
+no_spelling = len(missing_spelling)
+captured = (len(spelling_total))
+empty = len(empty_spelling)
+correct = (len(spelling_total)-len(spelling_column_error)-len(spelling_error)-len(spelling_length_error))
+many_columns_error = len(spelling_column_error)
+few_columns_error = len(spelling_error)
+test_length_error = len(spelling_length_error)
 
 graph = pd.DataFrame()
-graph['Test'] = 'Writing Sample'
+graph['Test'] = 'Spelling'
 graph['Correct'] = correct
-graph['File missing test'] = no_writ_sample
+graph['File missing test'] = no_spelling
 graph['Empty test'] = empty
 graph['Header error'] = np.nan
-graph['Response numbering error'] = numb_error
-graph['Column number error'] = np.nan
-graph['Test length error'] = np.nan
+graph['Response numbering error'] = np.nan
+graph['Column number error'] = many_columns_error + few_columns_error
+graph['Test length error'] = test_length_error
 
-graph.to_csv('writ_sample_graph.csv', encoding='utf-8')
+graph.to_csv('spelling_graph.csv', encoding='utf-8')
 
 '''
-files = pd.Series([writ_sample_total, captured],
-                  index=['No Writing Sample'+ ': ' +str(missing_writ_sample),
+files = pd.Series([no_spelling, captured],
+                  index=['No Spelling'+ ': ' +str(no_spelling),
                          'Captured Data'+ ': ' +str(captured)], name='')
 
-files_graph = files.plot.pie(title='Summary of Files: Writing Sample', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['r', 'g'])
+files_graph = files.plot.pie(title='Summary of Files: Spelling', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['r', 'g'])
 #plt.show(files_graph)
 
-correct_data = pd.Series([correct, numb_error, total_writ_error],
+correct_data = pd.Series([correct, many_columns_error, few_columns_error, test_length_error],
                    index=['Correctly Captured'+ ': ' +str(correct),
-                          'Numbering Error'+ ': ' +str(numb_error), 
-                          'Response Error'+ ': ' +str(total_writ_error)], name='')
+                          'Too Many Columns'+ ': ' +str(many_columns_error),
+                          'Too Few Columns'+ ': ' +str(few_columns_error),
+                          'Test Length Error'+ ': ' +str(test_length_error)], name='')
 
-data_graph = correct_data.plot.pie(title='Breakdown of Captured Data: Writing Sample', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['b', 'c', 'y'])
+data_graph = correct_data.plot.pie(title='Breakdown of Captured Data: Spelling', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['b', 'c', 'y', 'p'])
 #plt.show(data_graph)
 '''
