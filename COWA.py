@@ -30,7 +30,7 @@ lang_files = find('*.xls', work_dir + '/Patients/')
 data = []
 
 # cols will be used to build dataframe off of specific Redcap headers
-cols = pd.read_csv(work_dir + '/DickersonMasterEnrollment_ImportTemplate_2017-07-17.csv')
+cols = pd.read_csv(work_dir + '/DickersonMasterEnrollment_ImportTemplate_2017-07-24.csv')
 
 single_test = pd.DataFrame()
 count = 0
@@ -175,3 +175,25 @@ for file in lang_files:  # Iterate through every found excel file
     all_test = all_test.append(single_test)
     all_test = all_test.drop_duplicates(['Subject', 'cowa_date'])
 all_test.to_csv('COWA-final.csv', encoding='utf-8')
+
+# find size of errors
+no_cowa = len(missing_cowa)
+captured = (len(cowa_total))
+correct = (len(cowa_total)-len(cowa_letter_error))
+letter_error = len(cowa_letter_error)
+
+'''
+files = pd.Series([no_cowa, captured],
+                  index=['No COWA'+ ': ' +str(no_cowa),
+                         'Captured Data'+ ': ' +str(captured)], name='')
+
+files_graph = files.plot.pie(title='Summary of Files: COWA', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['r', 'g'])
+#plt.show(files_graph)
+'''
+
+correct_data = pd.Series([correct, letter_error],
+                   index=['Correctly Captured'+ ': ' +str(correct),
+                          'Letter Error'+ ': ' +str(letter_error)], name='')
+
+data_graph = correct_data.plot.pie(title='Breakdown of Captured Data: COWA', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['b', 'c'])
+plt.show(data_graph)
