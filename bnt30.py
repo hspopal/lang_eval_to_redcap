@@ -30,7 +30,7 @@ lang_files = find('*.xls', work_dir + '/Patients/')
 data = []
 
 # cols will be used to build dataframe off of specific Redcap headers
-cols = pd.read_csv(work_dir + '/DickersonMasterEnrollment_ImportTemplate_2017-07-17.csv')
+cols = pd.read_csv(work_dir + '/DickersonMasterEnrollment_ImportTemplate_2017-07-24.csv')
 
 single_test = pd.DataFrame()
 count = 0
@@ -291,6 +291,7 @@ captured = (len(bnt30_total))
 correct = (len(bnt30_total)-len(header_error_bnt30))
 header_error = len(header_error_bnt30)
 
+'''
 files = pd.Series([no_bnt30, captured],
                   index=['No BNT30'+ ': ' +str(no_bnt30),
                          'Captured Data'+ ': ' +str(captured)], name='')
@@ -304,3 +305,16 @@ correct_data = pd.Series([correct, header_error],
 
 data_graph = correct_data.plot.pie(title='Breakdown of Captured Data: BNT30', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['b', 'c'])
 #plt.show(data_graph)
+'''
+
+graph = pd.DataFrame()
+graph['Test'] = 'BNT30'
+graph['Correct'] = correct
+graph['File missing test'] = no_bnt30
+graph['Empty test'] = np.nan
+graph['Header error'] = header_error
+graph['Response numbering error'] = np.nan
+graph['Column number error'] = np.nan
+graph['Test length error'] = np.nan
+
+graph.to_csv('bnt30_graph.csv', encoding='utf-8')
