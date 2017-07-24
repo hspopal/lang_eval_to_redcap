@@ -135,11 +135,14 @@ for file in lang_files:  # Iterate through every found excel file
     wab_rep_patients = pd.DataFrame()
     wab_rep_patients = all_test.groupby(all_test['Subject'].tolist(),as_index=False).size() # 104 out of 126 total
 
+all_test.to_csv('wab_rep_final.csv', encoding='utf-8')
+
 no_wab_rep = len(missing_wab_repetition)
 captured = (len(total_wab_rep))
 correct = (len(total_wab_rep)-len(wab_rep_error))
 error = len(wab_rep_error)
 
+'''
 files = pd.Series([no_wab_rep, captured],
                   index=['No WAB Repetition'+ ': ' +str(no_wab_rep),
                          'Captured Data'+ ': ' +str(captured)], name='')
@@ -153,6 +156,16 @@ correct_data = pd.Series([correct, error],
 
 data_graph = correct_data.plot.pie(title='Breakdown of Captured Data: WAB Repetition', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['b', 'c'])
 #plt.show(data_graph)
+'''
 
+graph = pd.DataFrame()
+graph['Test'] = 'WAB Repetition'
+graph['Correct'] = correct
+graph['File missing test'] = no_wab_rep
+graph['Empty test'] = np.nan
+graph['Header error'] = error
+graph['Response numbering error'] = np.nan
+graph['Column number error'] = np.nan
+graph['Test length error'] = np.nan
 
-all_test.to_csv('wab_rep_final.csv', encoding='utf-8')
+graph.to_csv('wab_rep_graph.csv', encoding='utf-8')
