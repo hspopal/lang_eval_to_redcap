@@ -36,6 +36,7 @@ cols = pd.read_csv(work_dir + '/DickersonMasterEnrollment_ImportTemplate_2017-07
 count = 0
 
 spelling_total = [] # 177
+empty_spelling = []
 missing_spelling = [] # xls doesnt have spelling sheet (166)
 spelling_error = [] # too few columns (4)
 spelling_column_error = [] # too many columns (possibly old test or too many notes) (4)
@@ -110,7 +111,7 @@ for file in lang_files:  # Iterate through every found excel file
         temp_head_errors = []
 
         if spelling.empty:
-            missing_spelling.append(file)
+            empty_spelling.append(file)
             complete = 'no'
         else:
             # drop Nan columns and rows to bring notes right after data and create consistancy
@@ -175,23 +176,30 @@ all_test.to_csv('spelling-Final.csv', encoding='utf-8')
 # find size of errors
 no_spelling = len(missing_spelling)
 captured = (len(spelling_total))
+empty = len(empty_spelling)
 correct = (len(spelling_total)-len(spelling_column_error)-len(spelling_error)-len(spelling_length_error))
 many_columns_error = len(spelling_column_error)
 few_columns_error = len(spelling_error)
 test_length_error = len(spelling_length_error)
 
+col_list = ['Test', 'Correct','File missing test', 'Empty test', 'Header error', 'Response numbering error', 'Column number error', 'Test length error']
+col_data = ['Spelling',correct,no_spelling,empty,np.nan,np.nan,many_columns_error + few_columns_error,test_length_error]
+graph = pd.DataFrame(data =[col_data], columns=col_list)
+graph = graph.set_index(['Test'])
+
+graph.to_csv('spelling_graph.csv', encoding='utf-8')
+
+'''
 files = pd.Series([no_spelling, captured],
                   index=['No Spelling'+ ': ' +str(no_spelling),
                          'Captured Data'+ ': ' +str(captured)], name='')
-
 files_graph = files.plot.pie(title='Summary of Files: Spelling', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['r', 'g'])
 #plt.show(files_graph)
-
 correct_data = pd.Series([correct, many_columns_error, few_columns_error, test_length_error],
                    index=['Correctly Captured'+ ': ' +str(correct),
                           'Too Many Columns'+ ': ' +str(many_columns_error),
                           'Too Few Columns'+ ': ' +str(few_columns_error),
                           'Test Length Error'+ ': ' +str(test_length_error)], name='')
-
 data_graph = correct_data.plot.pie(title='Breakdown of Captured Data: Spelling', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['b', 'c', 'y', 'p'])
 #plt.show(data_graph)
+'''
