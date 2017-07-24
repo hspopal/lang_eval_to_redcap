@@ -165,7 +165,7 @@ for file in lang_files:  # Iterate through every found excel file
                 if ('1.' or '2.' or '3.' or '4.' or '5.') in response6:
                     transcr_response_error.append('response6')
 
-                transcription = ['', '', '', '', '', '', '']
+                transcription = [date, '', '', '', '', '', '', '']
                 if '1.' in str(response1.iloc[:, -1]):
                     transcription[0] = response1.iloc[:, -1]
                 if '2.' in str(response2.iloc[:, -1]):
@@ -208,15 +208,10 @@ empty_trans = len(missing_transcr)
 correct = (len(transcription_total)-len(missing_transcr)-len(transcr_resp_numb_error))
 numb_error = len(transcr_resp_numb_error)
 
-graph = pd.DataFrame()
-graph['Test'] = 'Lang Transcription'
-graph['Correct'] = correct
-graph['File missing test'] = no_trans
-graph['Empty test'] = empty_trans
-graph['Header error'] = np.nan
-graph['Response numbering error'] = numb_error
-graph['Column number error'] = np.nan
-graph['Test length error'] = np.nan
+col_list = ['Test', 'Correct','File missing test', 'Empty test', 'Header error', 'Response numbering error', 'Column number error', 'Test length error']
+col_data = ['Lang Transcription',correct,no_trans,empty_trans,np.nan,numb_error,np.nan,np.nan]
+graph = pd.DataFrame(data =[col_data], columns=col_list)
+graph = graph.set_index(['Test'])
 
 graph.to_csv('lang_trans_graph.csv', encoding='utf-8')
 
@@ -224,16 +219,12 @@ graph.to_csv('lang_trans_graph.csv', encoding='utf-8')
 files = pd.Series([no_trans, captured],
                   index=['No Lang Transcription'+ ': ' +str(no_trans),
                          'Captured Data'+ ': ' +str(captured)], name='')
-
 files_graph = files.plot.pie(title='Summary of Files: Language Transcription', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['r', 'g'])
 #plt.show(files_graph)
-
 correct_data = pd.Series([correct, numb_error, empty_trans],
                          index=['Captured Correctly'+ ': ' +str(correct),
                                 'Response Numbering Error'+ ': ' +str(numb_error),
                                 'Empty Trans Sheet'+ ': ' +str(empty_trans)], name='')
-
 data_graph = correct_data.plot.pie(title='Breakdown of Captured Data: Lang Transcriptions', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['b', 'c', 'y'])
 #plt.show(data_graph)
 '''
-
