@@ -29,7 +29,7 @@ lang_files = find('*.xls', work_dir + '/Patients/')
 data = []
 
 # cols will be used to build dataframe off of specific Redcap headers
-redcap_cols = pd.read_csv(work_dir + '/DickersonMasterEnrollment_ImportTemplate_2017-07-17.csv')
+redcap_cols = pd.read_csv(work_dir + '/DickersonMasterEnrollment_ImportTemplate_2017-07-24.csv')
 
 single_test = pd.DataFrame()
 count = 0
@@ -200,12 +200,27 @@ for file in lang_files:  # Iterate through every found excel file
     transcr_patients = pd.DataFrame()
     transcr_patients = all_trans.groupby(all_trans['Subject'].tolist(),as_index=False).size() # 100 out of 126 total
 
+all_trans.to_csv('Lang_trans_Final.csv', encoding='utf-8')
+
 no_trans = len(missing_transcr_file)
 captured = (len(transcription_total))
 empty_trans = len(missing_transcr)
 correct = (len(transcription_total)-len(missing_transcr)-len(transcr_resp_numb_error))
 numb_error = len(transcr_resp_numb_error)
 
+graph = pd.DataFrame()
+graph['Test'] = 'Lang Transcription'
+graph['Correct'] = correct
+graph['File missing test'] = no_trans
+graph['Empty test'] = empty_trans
+graph['Header error'] = np.nan
+graph['Response numbering error'] = numb_error
+graph['Column number error'] = np.nan
+graph['Test length error'] = np.nan
+
+graph.to_csv('lang_trans_graph.csv', encoding='utf-8')
+
+'''
 files = pd.Series([no_trans, captured],
                   index=['No Lang Transcription'+ ': ' +str(no_trans),
                          'Captured Data'+ ': ' +str(captured)], name='')
@@ -220,7 +235,5 @@ correct_data = pd.Series([correct, numb_error, empty_trans],
 
 data_graph = correct_data.plot.pie(title='Breakdown of Captured Data: Lang Transcriptions', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['b', 'c', 'y'])
 #plt.show(data_graph)
+'''
 
-
-# all_test = pd.concat([all_test], axis=1)
-all_trans.to_csv('Lang_trans_Final.csv', encoding='utf-8')
