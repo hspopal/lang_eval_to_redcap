@@ -38,6 +38,7 @@ count = 0
 date_error = []
 
 total_wab_rep = [] # 231
+empty_wab_rep = []
 missing_wab_repetition = [] # 62
 wab_rep_error = [] # 0
 
@@ -107,25 +108,29 @@ for file in lang_files:  # Iterate through every found excel file
             date = datetime.strptime((match.group())[1:-1], '%m%d%y').date()
             single_test.ix[0, 'Date'] = str(date)
     
-        temp_items = []
-        wab_rep_notNaN['Verbatim response if incorrect'] = (wab_rep_notNaN
-                                                            ['Verbatim response '
-                                                             'if incorrect']
-                                                            .replace(np.nan,
-                                                                     '',
-                                                                     regex=True
-                                                                     ))
-        wab_rep_notNaN = wab_rep_notNaN.reset_index()
-        for n in range(0, 15):
-            temp_items.append(wab_rep_notNaN['Score'][n])
-            temp_items.append(wab_rep_notNaN
-                              ['Verbatim response if incorrect'][n])
-            temp_items.append('')
-
-        temp_df = pd.DataFrame([temp_items], columns=wab_rep_headers)
-        single_test = pd.concat([single_test, temp_df], axis=1)
-        if len(single_test.columns) < 3:
-            wab_rep_error.append(file)
+        if wab_rep_notNaN.empty:
+            empty_wab_rep.append(file)
+        else:
+        
+            temp_items = []
+            wab_rep_notNaN['Verbatim response if incorrect'] = (wab_rep_notNaN
+                                                                ['Verbatim response '
+                                                                'if incorrect']
+                                                                .replace(np.nan,
+                                                                        '',
+                                                                        regex=True
+                                                                        ))
+            wab_rep_notNaN = wab_rep_notNaN.reset_index()
+            for n in range(0, 15):
+                temp_items.append(wab_rep_notNaN['Score'][n])
+                temp_items.append(wab_rep_notNaN
+                                  ['Verbatim response if incorrect'][n])
+                temp_items.append('')
+    
+            temp_df = pd.DataFrame([temp_items], columns=wab_rep_headers)
+            single_test = pd.concat([single_test, temp_df], axis=1)
+            if len(single_test.columns) < 3:
+                wab_rep_error.append(file)
 
     else:
         missing_wab_repetition.append(file)
@@ -139,6 +144,7 @@ all_test.to_csv('wab_rep_final.csv', encoding='utf-8')
 
 no_wab_rep = len(missing_wab_repetition)
 captured = (len(total_wab_rep))
+empty = len(empty_wab_rep)
 correct = (len(total_wab_rep)-len(wab_rep_error))
 error = len(wab_rep_error)
 
@@ -154,10 +160,26 @@ correct_data = pd.Series([correct, error],
 data_graph = correct_data.plot.pie(title='Breakdown of Captured Data: WAB Repetition', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['b', 'c'])
 #plt.show(data_graph)
 '''
+# Graph Total Errors
+total_list = ['Test', 'Captured', 'File missing test']
+total_data = ['WAB Repetition', captured, no_wab_rep]
+total_graph = pd.DataFrame(data=[total_data], columns=total_list)
+total_graph = total_graph.set_index(['Test'])
+total_graph.to_csv('total_wab_rep_graph.csv', encoding='utf-8')
 
-col_list = ['Test', 'Correct','File missing test', 'Empty test', 'Header error', 'Response numbering error', 'Column number error', 'Test length error']
-col_data = ['WAB Repetition',correct,no_wab_rep,np.nan,error,np.nan,np.nan,np.nan]
+# Graph Percent Errors
+col_list = ['Test', 'Correct', 'Empty test', 'Header error', 'Response numbering error', 'Column number error', 'Test length error']
+col_data = ['WAB Repetition',correct,empty,error,np.nan,np.nan,np.nan]
 graph = pd.DataFrame(data =[col_data], columns=col_list)
 graph = graph.set_index(['Test'])
+graph = graph.fillna(0)
 
-graph.to_csv('wab_rep_graph.csv', encoding='utf-8')
+percent_data = ['WAB Repetition']
+for x in graph.iloc[0].tolist():
+    percent = (float(x) / sum(graph.iloc[0])) * 100
+    percent_data.append(percent)
+
+wab_rep_graph = pd.DataFrame(data=[percent_data], columns=col_list)
+wab_rep_graph = wab_rep_graph.set_index(['Test'])
+wab_rep_graph = wab_rep_graph.replace(0, np.nan)
+wab_rep_graph.to_csv('wab_rep_graph.csv', encoding='utf-8')
