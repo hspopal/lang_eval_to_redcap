@@ -177,17 +177,35 @@ all_test.to_csv('spelling-Final.csv', encoding='utf-8')
 no_spelling = len(missing_spelling)
 captured = (len(spelling_total))
 empty = len(empty_spelling)
-correct = (len(spelling_total)-len(spelling_column_error)-len(spelling_error)-len(spelling_length_error))
+correct = (len(spelling_total)-len(spelling_column_error)-len(spelling_error)-len(spelling_length_error)-len(empty_spelling))
 many_columns_error = len(spelling_column_error)
 few_columns_error = len(spelling_error)
 test_length_error = len(spelling_length_error)
 
-col_list = ['Test', 'Correct','File missing test', 'Empty test', 'Header error', 'Response numbering error', 'Column number error', 'Test length error']
-col_data = ['Spelling',correct,no_spelling,empty,np.nan,np.nan,many_columns_error + few_columns_error,test_length_error]
+# Graph Total Errors
+total_list = ['Test', 'Captured', 'File missing test']
+total_data = ['Spelling', captured, no_spelling]
+total_graph = pd.DataFrame(data=[total_data], columns=total_list)
+total_graph = total_graph.set_index(['Test'])
+total_graph.to_csv('total_spelling_graph.csv', encoding='utf-8')
+
+# Graph Percent Errors
+col_list = ['Test', 'Correct', 'Empty test', 'Header error', 'Response numbering error', 'Column number error', 'Test length error']
+col_data = ['Spelling',correct,empty,np.nan,np.nan,many_columns_error + few_columns_error,test_length_error]
 graph = pd.DataFrame(data =[col_data], columns=col_list)
 graph = graph.set_index(['Test'])
+graph = graph.fillna(0)
 
-graph.to_csv('spelling_graph.csv', encoding='utf-8')
+percent_data = ['Spelling']
+for x in graph.iloc[0].tolist():
+    percent = (float(x) / sum(graph.iloc[0])) * 100
+    percent_data.append(percent)
+
+spell_graph = pd.DataFrame(data=[percent_data], columns=col_list)
+spell_graph = spell_graph.set_index(['Test'])
+spell_graph = spell_graph.replace(0, np.nan)
+
+spell_graph.to_csv('spelling_graph.csv', encoding='utf-8')
 
 '''
 files = pd.Series([no_spelling, captured],
