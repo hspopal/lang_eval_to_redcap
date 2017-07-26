@@ -184,12 +184,30 @@ correct = (len(cowa_total)-len(cowa_letter_error))
 empty = len(empty_cowa)
 letter_error = len(cowa_letter_error)
 
-col_list = ['Test', 'Correct','File missing test', 'Empty test', 'Header error', 'Response numbering error', 'Column number error', 'Test length error']
-col_data = ['COWA',correct,no_cowa,empty,letter_error,np.nan,np.nan,np.nan]
+# Graph Total Errors
+total_list = ['Test', 'Captured', 'File missing test']
+total_data = ['COWA', captured, no_cowa]
+total_graph = pd.DataFrame(data=[total_data], columns=total_list)
+total_graph = total_graph.set_index(['Test'])
+total_graph.to_csv('total_cowa_graph.csv', encoding='utf-8')
+
+# Graph Percent Errors
+col_list = ['Test', 'Correct', 'Empty test', 'Header error', 'Response numbering error', 'Column number error', 'Test length error']
+col_data = ['COWA',correct,empty,letter_error,np.nan,np.nan,np.nan]
 graph = pd.DataFrame(data =[col_data], columns=col_list)
 graph = graph.set_index(['Test'])
+graph = graph.fillna(0)
 
-graph.to_csv('cowa_graph.csv', encoding='utf-8')
+percent_data = ['COWA']
+for x in graph.iloc[0].tolist():
+    percent = (float(x) / sum(graph.iloc[0])) * 100
+    percent_data.append(percent)
+
+cowa_graph = pd.DataFrame(data=[percent_data], columns=col_list)
+cowa_graph = cowa_graph.set_index(['Test'])
+cowa_graph = cowa_graph.replace(0, np.nan)
+
+cowa_graph.to_csv('cowa_graph.csv', encoding='utf-8')
 
 '''
 files = pd.Series([no_cowa, captured],
