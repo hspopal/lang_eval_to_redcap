@@ -8,7 +8,6 @@ import os
 import fnmatch
 from datetime import datetime
 
-
 # Capture all subject lang files
 # Skip spreadsheets that have errors for missing tabs, or ill formatted headers
 # Create a seperate list for each error with failed subjects/files
@@ -16,7 +15,6 @@ from datetime import datetime
 work_dir = '/Users/axs97/Desktop/lang_eval_to_redcap-alexs'
 
 os.chdir(work_dir)
-
 
 def find(pattern, path):
     result = []
@@ -31,36 +29,33 @@ lang_files = find('*.xls', work_dir + '/Patients/')
 data = []
 
 # cols will be used to build dataframe off of specific Redcap headers
-cols = pd.read_csv(work_dir + '/DickersonMasterEnrollment_ImportTemplate_2017-07-24.csv')
+redcap_cols = pd.read_csv(work_dir + '/DickersonMasterEnrollment_ImportTemplate_2017-07-24.csv')
 
+single_test = pd.DataFrame()
 count = 0
-
 date_error = []
 
-total_wab_rep = [] # 231
-empty_wab_rep = []
-missing_wab_repetition = [] # 62
-wab_rep_error = [] # 0
+missing_transcr = [] # 26 (Lang Trascription sheet exists but is empty)
+missing_transcr_file = [] # 62 (file does not have 'lang trans')
+transcription_total = [] # 231
+total_response_error = [] # 0
+transcr_resp_numb_error = [] # 82 (does not indicate prompt number)
 
-all_test = pd.DataFrame()
+all_trans = pd.DataFrame()
 
 for file in lang_files:  # Iterate through every found excel file
-
     xl = pd.ExcelFile(file)
     sprdshts = xl.sheet_names  # see all sheet names
 
-    # WAB Repitition
-    if 'WAB Repetition' in sprdshts:
-        single_test = pd.DataFrame()
+    transcr_response_error = []
+        
+    # Language Transcription
 
-        total_wab_rep.append(file)
-        wab_rep = pd.read_excel(file, 'WAB Repetition', skiprows=1)
-        wab_rep_notNaN = wab_rep[~pd.isnull(wab_rep['Unnamed: 0'])]
-        wab_rep_headers = []
-        for n in range(1, 16): # create headers
-            wab_rep_headers.append('wab_repetition_'+str(n))
-            wab_rep_headers.append('wab_repetition_'+str(n)+'_vrbtm')
-            wab_rep_headers.append('wab_repetition_'+str(n)+'_notes')
+    if 'Lang transcriptions' in sprdshts:
+        lang_trans = pd.read_excel(file, 'Lang transcriptions', header=None)
+        transcription_total.append(file)
+    
+        single_test = pd.DataFrame()
 
         # Find subject's name from file path
         single_test['Subject'] = []
@@ -74,7 +69,8 @@ for file in lang_files:  # Iterate through every found excel file
         if m:
             found = m.group(1)
         single_test.ix[0, 'Subject'] = found
-    
+        
+        # find date searching through different types of formats
         match = re.search(r'/(\d\d\d\d\d\d)/', file)
         if match is None:
             match = re.search(r'(\d\d\d\d\d\d)/', file)
@@ -108,78 +104,145 @@ for file in lang_files:  # Iterate through every found excel file
             date = datetime.strptime((match.group())[1:-1], '%m%d%y').date()
             single_test.ix[0, 'Date'] = str(date)
     
-        if wab_rep_notNaN.empty:
-            empty_wab_rep.append(file)
+        if lang_trans.empty:
+            missing_transcr.append(file)
         else:
-        
-            temp_items = []
-            wab_rep_notNaN['Verbatim response if incorrect'] = (wab_rep_notNaN
-                                                                ['Verbatim response '
-                                                                'if incorrect']
-                                                                .replace(np.nan,
-                                                                        '',
-                                                                        regex=True
-                                                                        ))
-            wab_rep_notNaN = wab_rep_notNaN.reset_index()
-            for n in range(0, 15):
-                temp_items.append(wab_rep_notNaN['Score'][n])
-                temp_items.append(wab_rep_notNaN
-                                  ['Verbatim response if incorrect'][n])
-                temp_items.append('')
+            lang_items = lang_trans.index.tolist()
+
+            trans_clear = lang_trans.fillna('')
+            trans_clear = trans_clear.drop(trans_clear.columns[0], axis=1)
+
+            if trans_clear.empty:
+                missing_transcr.append(file)
+
+            else:
+                # search for cells that contain string that start with prompt number
+                mask = np.column_stack(
+                                        [trans_clear[col].str.startswith
+                                            (r"1.", na=False) for
+                                            col in trans_clear])
+                response1 = trans_clear.loc[mask.any(axis=1)]
+                if ('2.' or '3.' or '4.' or '5.' or '6.') in response1:
+                    transcr_response_error.append('response1')
+
+                mask = np.column_stack(
+                                        [trans_clear[col].str.startswith
+                                            (r"2.", na=False) for
+                                            col in trans_clear])
+                response2 = trans_clear.loc[mask.any(axis=1)]
+                if ('1.' or '3.' or '4.' or '5.' or '6.') in response2:
+                    transcr_response_error.append('response2')
+
+                mask = np.column_stack(
+                                        [trans_clear[col].str.startswith
+                                            (r"3.", na=False) for
+                                            col in trans_clear])
+                response3 = trans_clear.loc[mask.any(axis=1)]
+                if ('1.' or '2.' or '4.' or '5.' or '6.') in response3:
+                    transcr_response_error.append('response3')
+
+                mask = np.column_stack(
+                                        [trans_clear[col].str.startswith
+                                            (r"4.", na=False) for
+                                            col in trans_clear])
+                response4 = trans_clear.loc[mask.any(axis=1)]
+                if ('1.' or '2.' or '3.' or '5.' or '6.') in response4:
+                    transcr_response_error.append('response4')
+
+                mask = np.column_stack(
+                                        [trans_clear[col].str.startswith
+                                            (r"5.", na=False) for
+                                            col in trans_clear])
+                response5 = trans_clear.loc[mask.any(axis=1)]
+                if ('1.' or '2.' or '3.' or '4.' or '6.') in response5:
+                    transcr_response_error.append('response5')
+
+                mask = np.column_stack(
+                                        [trans_clear[col].str.startswith
+                                            (r"6.", na=False) for
+                                            col in trans_clear])
+                response6 = trans_clear.loc[mask.any(axis=1)]
+                if ('1.' or '2.' or '3.' or '4.' or '5.') in response6:
+                    transcr_response_error.append('response6')
+
+                transcription = [date, '', '', '', '', '', '', '']
+                if '1.' in str(response1.iloc[:, -1]):
+                    transcription[0] = response1.iloc[:, -1]
+                if '2.' in str(response2.iloc[:, -1]):
+                    transcription[1] = response2.iloc[:, -1]
+                if '3.' in str(response3.iloc[:, -1]):
+                    transcription[2] = response3.iloc[:, -1]
+                if '4.' in str(response4.iloc[:, -1]):
+                    transcription[3] = response4.iloc[:, -1]
+                if '5.' in str(response5.iloc[:, -1]):
+                    transcription[4] = response5.iloc[:, -1]
+                if '6.' in str(response6.iloc[:, -1]):
+                    transcription[5] = response6.iloc[:, -1]
+
+                if len(transcr_response_error) > 0:
+                    total_response_error.append([file, transcr_response_error])
+
+                if response1.empty and response2.empty and response3.empty and response4.empty and response5.empty and response6.empty:
+                    transcr_resp_numb_error.append(file)
     
-            temp_df = pd.DataFrame([temp_items], columns=wab_rep_headers)
-            single_test = pd.concat([single_test, temp_df], axis=1)
-            if len(single_test.columns) < 3:
-                wab_rep_error.append(file)
+                trans_df = pd.DataFrame(data=[transcription],
+                                        columns=[col for col in
+                                        redcap_cols.columns
+                                        if 'lang_transcr_' in col])
+                single_test = pd.concat([single_test, trans_df], axis=1)
 
     else:
-        missing_wab_repetition.append(file)
-    all_test = all_test.append(single_test)
-    all_test = all_test.drop_duplicates(['Subject', 'Date'])
+        missing_transcr_file.append(file)
 
-    wab_rep_patients = pd.DataFrame()
-    wab_rep_patients = all_test.groupby(all_test['Subject'].tolist(),as_index=False).size() # 104 out of 126 total
+    all_trans = all_trans.append(single_test)
+    all_trans = all_trans.drop_duplicates(['Subject', 'Date'])
+    
+    transcr_patients = pd.DataFrame()
+    transcr_patients = all_trans.groupby(all_trans['Subject'].tolist(),as_index=False).size() # 100 out of 126 total
 
-all_test.to_csv('wab_rep_final.csv', encoding='utf-8')
+all_trans.to_csv('Lang_trans_Final.csv', encoding='utf-8')
 
-no_wab_rep = len(missing_wab_repetition)
-captured = (len(total_wab_rep))
-empty = len(empty_wab_rep)
-correct = (len(total_wab_rep)-len(wab_rep_error))
-error = len(wab_rep_error)
+no_trans = len(missing_transcr_file)
+captured = (len(transcription_total))
+empty_trans = len(missing_transcr)
+correct = (len(transcription_total)-len(missing_transcr)-len(transcr_resp_numb_error))
+numb_error = len(transcr_resp_numb_error)
 
-'''
-files = pd.Series([no_wab_rep, captured],
-                  index=['No WAB Repetition'+ ': ' +str(no_wab_rep),
-                         'Captured Data'+ ': ' +str(captured)], name='')
-files_graph = files.plot.pie(title='Summary of Files: WAB Repetition', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['r', 'g'])
-#plt.show(files_graph)
-correct_data = pd.Series([correct, error],
-                         index=['Captured Correctly'+ ': ' +str(correct),
-                                'Response Error'+ ': ' +str(error)], name='')
-data_graph = correct_data.plot.pie(title='Breakdown of Captured Data: WAB Repetition', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['b', 'c'])
-#plt.show(data_graph)
-'''
 # Graph Total Errors
 total_list = ['Test', 'Captured', 'File missing test']
-total_data = ['WAB Repetition', captured, no_wab_rep]
+total_data = ['Lang Transcription', captured, no_trans]
 total_graph = pd.DataFrame(data=[total_data], columns=total_list)
 total_graph = total_graph.set_index(['Test'])
-total_graph.to_csv('total_wab_rep_graph.csv', encoding='utf-8')
+total_graph.to_csv('total_trans_graph.csv', encoding='utf-8')
 
 # Graph Percent Errors
 col_list = ['Test', 'Correct', 'Empty test', 'Header error', 'Response numbering error', 'Column number error', 'Test length error']
-col_data = ['WAB Repetition',correct,empty,error,np.nan,np.nan,np.nan]
+col_data = ['Lang Transcription',correct,empty_trans,np.nan,numb_error,np.nan,np.nan]
 graph = pd.DataFrame(data =[col_data], columns=col_list)
 graph = graph.set_index(['Test'])
 graph = graph.fillna(0)
 
-percent_data = ['WAB Repetition']
+percent_data = ['Lang Transcription']
 for x in graph.iloc[0].tolist():
     percent = (float(x) / sum(graph.iloc[0])) * 100
     percent_data.append(percent)
 
-wab_rep_graph = pd.DataFrame(data=[percent_data], columns=col_list)
-wab_rep_graph = wab_rep_graph.set_index(['Test'])
-wab_rep_graph = wab_rep_graph.replace(0, np.nan)
-wab_rep_graph.to_csv('wab_rep_graph.csv', encoding='utf-8')
+lang_graph = pd.DataFrame(data=[percent_data], columns=col_list)
+lang_graph = lang_graph.set_index(['Test'])
+lang_graph = lang_graph.replace(0, np.nan)
+
+lang_graph.to_csv('lang_trans_graph.csv', encoding='utf-8')
+
+'''
+files = pd.Series([no_trans, captured],
+                  index=['No Lang Transcription'+ ': ' +str(no_trans),
+                         'Captured Data'+ ': ' +str(captured)], name='')
+files_graph = files.plot.pie(title='Summary of Files: Language Transcription', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['r', 'g'])
+#plt.show(files_graph)
+correct_data = pd.Series([correct, numb_error, empty_trans],
+                         index=['Captured Correctly'+ ': ' +str(correct),
+                                'Response Numbering Error'+ ': ' +str(numb_error),
+                                'Empty Trans Sheet'+ ': ' +str(empty_trans)], name='')
+data_graph = correct_data.plot.pie(title='Breakdown of Captured Data: Lang Transcriptions', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['b', 'c', 'y'])
+#plt.show(data_graph)
+'''
