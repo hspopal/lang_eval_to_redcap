@@ -303,10 +303,27 @@ correct_data = pd.Series([correct, header_error],
 data_graph = correct_data.plot.pie(title='Breakdown of Captured Data: BNT30', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['b', 'c'])
 #plt.show(data_graph)
 '''
+# Graph Total Errors
+total_list = ['Test', 'Captured', 'File missing test']
+total_data = ['BNT30', captured, no_bnt30]
+total_graph = pd.DataFrame(data=[total_data], columns=total_list)
+total_graph = total_graph.set_index(['Test'])
+total_graph.to_csv('total_bnt30_graph.csv', encoding='utf-8')
 
-col_list = ['Test', 'Correct','File missing test', 'Empty test', 'Header error', 'Response numbering error', 'Column number error', 'Test length error']
-col_data = ['BNT30', correct, no_bnt30, np.nan, header_error, np.nan, np.nan, np.nan]
+# Graph Percent Errors
+col_list = ['Test', 'Correct', 'Empty test', 'Header error', 'Response numbering error', 'Column number error', 'Test length error']
+col_data = ['BNT30', correct, np.nan, header_error, np.nan, np.nan, np.nan]
 graph = pd.DataFrame(data=[col_data], columns=col_list)
 graph = graph.set_index(['Test'])
+graph = graph.fillna(0)
 
-graph.to_csv('bnt30_graph.csv', encoding='utf-8')
+percent_data = ['BNT30']
+for x in graph.iloc[0].tolist():
+    percent = (float(x) / sum(graph.iloc[0])) * 100
+    percent_data.append(percent)
+
+bnt30_graph = pd.DataFrame(data=[percent_data], columns=col_list)
+bnt30_graph = bnt30_graph.set_index(['Test'])
+bnt30_graph = bnt30_graph.replace(0, np.nan)
+
+bnt30_graph.to_csv('bnt30_graph.csv', encoding='utf-8')
