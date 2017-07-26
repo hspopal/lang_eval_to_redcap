@@ -232,30 +232,45 @@ all_sample.to_csv('writ_sample.csv', encoding='utf-8')
 no_writ_sample = len(missing_writ_sample)
 captured = (len(writ_sample_total))
 empty = len(empty_writ_sample)
-correct = (len(writ_sample_total)-len(sample_resp_numb_error)-len(total_writ_error))
+correct = (len(writ_sample_total)-len(sample_resp_numb_error)-len(total_writ_error)-len(empty_writ_sample))
 numb_error = len(sample_resp_numb_error)
 response_error = len(total_writ_error)
 
-col_list = ['Test', 'Correct','File missing test', 'Empty test', 'Header error', 'Response numbering error', 'Column number error', 'Test length error']
-col_data = ['Writing Sample',correct, no_writ_sample,empty,np.nan,numb_error,np.nan,np.nan]
+# Graph Total Errors
+total_list = ['Test', 'Captured', 'File missing test']
+total_data = ['Writ Sample', captured, no_writ_sample]
+total_graph = pd.DataFrame(data=[total_data], columns=total_list)
+total_graph = total_graph.set_index(['Test'])
+total_graph.to_csv('total_writ_sample_graph.csv', encoding='utf-8')
+
+# Graph Percent Errors
+col_list = ['Test', 'Correct', 'Empty test', 'Header error', 'Response numbering error', 'Column number error', 'Test length error']
+col_data = ['Writ Sample',correct,empty,np.nan,numb_error,np.nan,np.nan]
 graph = pd.DataFrame(data =[col_data], columns=col_list)
 graph = graph.set_index(['Test'])
+graph = graph.fillna(0)
 
-graph.to_csv('writ_sample_graph.csv', encoding='utf-8')
+percent_data = ['Writ Sample']
+for x in graph.iloc[0].tolist():
+    percent = (float(x) / sum(graph.iloc[0])) * 100
+    percent_data.append(percent)
+
+writ_graph = pd.DataFrame(data=[percent_data], columns=col_list)
+writ_graph = writ_graph.set_index(['Test'])
+writ_graph = writ_graph.replace(0, np.nan)
+
+writ_graph.to_csv('writ_sample_graph.csv', encoding='utf-8')
 
 '''
 files = pd.Series([writ_sample_total, captured],
                   index=['No Writing Sample'+ ': ' +str(missing_writ_sample),
                          'Captured Data'+ ': ' +str(captured)], name='')
-
 files_graph = files.plot.pie(title='Summary of Files: Writing Sample', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['r', 'g'])
 #plt.show(files_graph)
-
 correct_data = pd.Series([correct, numb_error, total_writ_error],
                    index=['Correctly Captured'+ ': ' +str(correct),
                           'Numbering Error'+ ': ' +str(numb_error), 
                           'Response Error'+ ': ' +str(total_writ_error)], name='')
-
 data_graph = correct_data.plot.pie(title='Breakdown of Captured Data: Writing Sample', autopct='%.2f%%', figsize=(6,6), fontsize=15, colors=['b', 'c', 'y'])
 #plt.show(data_graph)
 '''
