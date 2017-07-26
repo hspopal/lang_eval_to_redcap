@@ -208,12 +208,30 @@ empty_trans = len(missing_transcr)
 correct = (len(transcription_total)-len(missing_transcr)-len(transcr_resp_numb_error))
 numb_error = len(transcr_resp_numb_error)
 
-col_list = ['Test', 'Correct','File missing test', 'Empty test', 'Header error', 'Response numbering error', 'Column number error', 'Test length error']
-col_data = ['Lang Transcription',correct,no_trans,empty_trans,np.nan,numb_error,np.nan,np.nan]
+# Graph Total Errors
+total_list = ['Test', 'Captured', 'File missing test']
+total_data = ['Lang Transcription', captured, no_trans]
+total_graph = pd.DataFrame(data=[total_data], columns=total_list)
+total_graph = total_graph.set_index(['Test'])
+total_graph.to_csv('total_trans_graph.csv', encoding='utf-8')
+
+# Graph Percent Errors
+col_list = ['Test', 'Correct', 'Empty test', 'Header error', 'Response numbering error', 'Column number error', 'Test length error']
+col_data = ['Lang Transcription',correct,empty_trans,np.nan,numb_error,np.nan,np.nan]
 graph = pd.DataFrame(data =[col_data], columns=col_list)
 graph = graph.set_index(['Test'])
+graph = graph.fillna(0)
 
-graph.to_csv('lang_trans_graph.csv', encoding='utf-8')
+percent_data = ['Lang Transcription']
+for x in graph.iloc[0].tolist():
+    percent = (float(x) / sum(graph.iloc[0])) * 100
+    percent_data.append(percent)
+
+lang_graph = pd.DataFrame(data=[percent_data], columns=col_list)
+lang_graph = lang_graph.set_index(['Test'])
+lang_graph = lang_graph.replace(0, np.nan)
+
+lang_graph.to_csv('lang_trans_graph.csv', encoding='utf-8')
 
 '''
 files = pd.Series([no_trans, captured],
