@@ -39,6 +39,7 @@ wab_read_total = []
 missing_wab_reading = [] # file doesnt have wab reading (2)
 missing_read_comm = [] # the wab reading sheet doesnt have command test (3)
 wab_reading_comm_head_error = [] # the columns are incorrectly named (2)
+empty_wab_reading = []
 date_error = []
 
 header_error_wab_reading = []
@@ -101,7 +102,7 @@ for file in lang_files:  # Iterate through every found excel file
             single_test.ix[0, 'Date'] = str(date)
 
         if wab_read.empty:
-            missing_wab_reading.append(file)
+            empty_wab_reading.append(file)
         else:
             wab_read_comm = pd.read_excel(file, 'WAB Reading', skiprows=15)
             wab_read_comm = wab_read_comm.iloc[0:6]
@@ -110,6 +111,7 @@ for file in lang_files:  # Iterate through every found excel file
             else:
                 if len(wab_read_comm.columns) == 6:
                     wab_read_comm['Unnamed: 6'] = ''
+                    wab_reading_comm_head_error.append(file)
                 else:
                     wab_read_comm_headers = []
                     for n in range(1, 7): # create header list
@@ -129,7 +131,7 @@ for file in lang_files:  # Iterate through every found excel file
                         temp_df = pd.DataFrame([temp_items], columns=wab_read_comm_headers)
                         single_test = pd.concat([single_test, temp_df], axis=1)
     else:
-        header_error_wab_reading.append(file)
+        missing_wab_reading.append(file)
     
     all_test = all_test.append(single_test)
 
@@ -139,16 +141,34 @@ all_test.to_csv('WAB_read_comm.csv', encoding='utf-8')
 # find size of errors
 no_wab_read = len(missing_wab_reading)
 captured = (len(wab_read_total))
-correct = (len(wab_read_total)-len(wab_reading_comm_head_error)-len(missing_read_comm))
+correct = (len(wab_read_total)-len(wab_reading_comm_head_error)-len(missing_read_comm)-len(empty_wab_reading))
+empty = len(empty_wab_reading)
 missing_comm = len(missing_read_comm)
 header_error = len(wab_reading_comm_head_error)
 
-col_list = ['Test', 'Correct','File missing test', 'Empty test', 'Header error', 'Response numbering error', 'Column number error', 'Test length error']
-col_data = ['WAB Reading Command',correct,no_wab_read,missing_comm,header_error,np.nan,np.nan,np.nan]
+# Graph Total Errors
+total_list = ['Test', 'Captured', 'File missing test']
+total_data = ['WAB Read Commands', captured, no_wab_read]
+total_graph = pd.DataFrame(data=[total_data], columns=total_list)
+total_graph = total_graph.set_index(['Test'])
+total_graph.to_csv('total_read_comm_graph.csv', encoding='utf-8')
+
+# Graph Percent Errors
+col_list = ['Test', 'Correct', 'Empty test', 'Header error', 'Response numbering error', 'Column number error', 'Test length error']
+col_data = ['WAB Read Command',correct,missing_comm,header_error,np.nan,np.nan,np.nan]
 graph = pd.DataFrame(data =[col_data], columns=col_list)
 graph = graph.set_index(['Test'])
+graph = graph.fillna(0)
 
-graph.to_csv('wab_read_comm_graph.csv', encoding='utf-8')
+percent_data = ['WAB Read Command']
+for x in graph.iloc[0].tolist():
+    percent = (float(x) / sum(graph.iloc[0])) * 100
+    percent_data.append(percent)
+
+wab_comm_graph = pd.DataFrame(data=[percent_data], columns=col_list)
+wab_comm_graph = wab_comm_graph.set_index(['Test'])
+wab_comm_graph = wab_comm_graph.replace(0, np.nan)
+wab_comm_graph.to_csv('wab_read_comm_graph.csv', encoding='utf-8')
 
 '''
 files = pd.Series([no_wab_read, captured],
