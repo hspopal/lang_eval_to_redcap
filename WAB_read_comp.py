@@ -149,12 +149,30 @@ correct = (len(wab_read_total)-len(header_error_wab_reading)-len(missing_read_co
 missing_comp = len(missing_read_comp)
 header_error = len(header_error_wab_reading)
 
-col_list = ['Test', 'Correct','File missing test', 'Empty test', 'Header error', 'Response numbering error', 'Column number error', 'Test length error']
-col_data = ['WAB Reading Comprehension',correct,no_wab_read,missing_comp,header_error,np.nan,np.nan,np.nan]
+# Graph Total Errors
+total_list = ['Test', 'Captured', 'File missing test']
+total_data = ['WAB Read Comp', captured, no_wab_read]
+total_graph = pd.DataFrame(data=[total_data], columns=total_list)
+total_graph = total_graph.set_index(['Test'])
+total_graph.to_csv('total_read_comp_graph.csv', encoding='utf-8')
+
+# Graph Percent Errors
+col_list = ['Test', 'Correct', 'Empty test', 'Header error', 'Response numbering error', 'Column number error', 'Test length error']
+col_data = ['WAB Read Comp',correct,missing_comp,header_error,np.nan,np.nan,np.nan]
 graph = pd.DataFrame(data =[col_data], columns=col_list)
 graph = graph.set_index(['Test'])
+graph = graph.fillna(0)
 
-graph.to_csv('wab_read_comp_graph.csv', encoding='utf-8')
+percent_data = ['WAB Read Comp']
+for x in graph.iloc[0].tolist():
+    percent = (float(x) / sum(graph.iloc[0])) * 100
+    percent_data.append(percent)
+
+wab_comp_graph = pd.DataFrame(data=[percent_data], columns=col_list)
+wab_comp_graph = wab_comp_graph.set_index(['Test'])
+wab_comp_graph = wab_comp_graph.replace(0, np.nan)
+
+wab_comp_graph.to_csv('wab_read_comp_graph.csv', encoding='utf-8')
 
 '''
 files = pd.Series([no_wab_read, captured],
