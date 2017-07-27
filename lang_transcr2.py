@@ -25,6 +25,9 @@ def find(pattern, path):
     return result
 
 lang_files = find('*.xls', work_dir + '/Patients/')
+#lang_files = ['/Users/axs97/Desktop/lang_eval_to_redcap-alexs/Patients/LastNameN_Z/Zwigard_Frank/Zwigard_110612/zwigard_110612.xls']
+#lang_files = ['/Users/axs97/Desktop/lang_eval_to_redcap-alexs/Patients/LastNameN_Z/Zwigard_Frank/Zwigard_022811/zwigard_lang_022811.xls']
+#lang_files = ['/Users/axs97/Desktop/lang_eval_to_redcap-alexs/Patients/LastNameA_F/Dines_Sally/050415/lang_eval_SD_050415.xls']
 
 data = []
 
@@ -40,6 +43,7 @@ missing_transcr_file = [] # 62 (file does not have 'lang trans')
 transcription_total = [] # 231
 total_response_error = [] # 0
 transcr_resp_numb_error = [] # 82 (does not indicate prompt number)
+response_keyword_error = []
 
 all_trans = pd.DataFrame()
 
@@ -167,23 +171,138 @@ for file in lang_files:  # Iterate through every found excel file
 
                 transcription = [date, '', '', '', '', '', '', '']
                 if '1.' in str(response1.iloc[:, -1]):
-                    transcription[0] = response1.iloc[:, -1]
+                    transcription[1] = response1.iloc[:, -1]
                 if '2.' in str(response2.iloc[:, -1]):
-                    transcription[1] = response2.iloc[:, -1]
+                    transcription[2] = response2.iloc[:, -1]
                 if '3.' in str(response3.iloc[:, -1]):
-                    transcription[2] = response3.iloc[:, -1]
+                    transcription[3] = response3.iloc[:, -1]
                 if '4.' in str(response4.iloc[:, -1]):
-                    transcription[3] = response4.iloc[:, -1]
+                    transcription[4] = response4.iloc[:, -1]
                 if '5.' in str(response5.iloc[:, -1]):
-                    transcription[4] = response5.iloc[:, -1]
+                    transcription[5] = response5.iloc[:, -1]
                 if '6.' in str(response6.iloc[:, -1]):
-                    transcription[5] = response6.iloc[:, -1]
-
+                    transcription[6] = response6.iloc[:, -1]
+                
                 if len(transcr_response_error) > 0:
                     total_response_error.append([file, transcr_response_error])
-
-                if response1.empty and response2.empty and response3.empty and response4.empty and response5.empty and response6.empty:
-                    transcr_resp_numb_error.append(file)
+                
+                if (len(transcription[1])==0 and
+                        len(transcription[2])==0 and
+                        len(transcription[3])==0 and
+                        len(transcription[4])==0 and
+                        len(transcription[5])==0 and
+                        len(transcription[6])==0 and
+                        len(transcription[7])==0):
+                    trans_clear = lang_trans
+                    trans_clear[0][1:7] = np.nan
+                    trans_clear = lang_trans.fillna('')
+                    
+                    trans_clear = trans_clear.dropna(axis=1, how='all')
+                    trans_clear.replace(to_replace=1, value='1',inplace=True)
+                    trans_clear.replace(to_replace=2, value='2',inplace=True)
+                    trans_clear.replace(to_replace=3, value='3',inplace=True)
+                    trans_clear.replace(to_replace=4, value='4',inplace=True)
+                    
+                    for p in trans_clear.index:
+                        if '1' in trans_clear.loc[p].tolist():
+                            response1 = trans_clear.loc[p].tolist()[1]
+                            transcription[1] = response1
+                        if '2' in trans_clear.loc[p].tolist():
+                            response2 = trans_clear.loc[p].tolist()[1]
+                            transcription[2] = response2
+                        if '3' in trans_clear.loc[p].tolist():
+                            response3 = trans_clear.loc[p].tolist()[1]
+                            transcription[3] = response3
+                        if '4' in trans_clear.loc[p].tolist():
+                            response4 = trans_clear.loc[p].tolist()[1]
+                            transcription[4] = response4
+                        if '5' in trans_clear.loc[p].tolist():
+                            response5 = trans_clear.loc[p].tolist()[1]
+                            transcription[5] = response5
+                        if '6' in trans_clear.loc[p].tolist():
+                            response6 = trans_clear.loc[p].tolist()[1]
+                            transcription[6] = response6
+                    
+                    sunday = ['Sunday','grew up','husband','wife']
+                    job = ['work', 'job']
+                    picnic = ['WAB Picnic', 'fish', 'fishing', 'sail',
+                              'sailing', 'kite', 'picnic', 'flag']
+                    sherman1 = ['Sherman 1','beach','towel','swim','drown',
+                                'towel', 'sun']
+                    sherman2 = ['Sherman 2', 'Sherman Baseball Picture',
+                                'window','broken','baseball','bat','newspaper',
+                                'shoe','truck','toy']
+                    brookshire = ['Cinderella','step sisters','cinderella','Brookshire',
+                                  'Fairy', 'fairy', 'Prince Charming', 'Prince charming']
+                    
+                    if (len(transcription[1])==0 and
+                            len(transcription[2])==0 and
+                            len(transcription[3])==0 and
+                            len(transcription[4])==0 and
+                            len(transcription[5])==0 and
+                            len(transcription[6])==0 and
+                            len(transcription[7])==0):
+                        trans_clear = trans_clear.replace('', np.nan).dropna(axis=0, how='all')
+                        trans_clear = trans_clear.dropna(axis=1, how='all').reset_index()
+                        trans_clear = trans_clear.fillna('')
+                        trans_clear = trans_clear.iloc[:,1]
+                        trans_list = trans_clear.tolist()
+                        response_list = []
+                        for x in trans_clear.index:
+                            for q in sunday:
+                                if q in trans_clear.iloc[x]:
+                                    if 'Sunday' in response_list:
+                                        break
+                                    response_sun = trans_clear.iloc[x]
+                                    response_list.append('Sunday')
+                                    transcription[1] = response_sun
+                            for r in job:
+                                if r in trans_clear.iloc[x]:
+                                    if 'Job' in response_list:
+                                        break
+                                    response_job = trans_clear.iloc[x]
+                                    response_list.append('Job')
+                                    transcription[2] = response_job
+                            for s in picnic:
+                                if s in trans_clear.iloc[x]:
+                                    if 'Picnic' in response_list:
+                                        break
+                                    response_picnic = trans_clear.iloc[x]
+                                    response_list.append('Picnic')
+                                    transcription[3] = response_picnic
+                            for t in sherman1:
+                                if t in trans_clear.iloc[x]:
+                                    if 'Sherman1' in response_list:
+                                        break
+                                    response_sher1 = trans_clear.iloc[x]
+                                    response_list.append('Sherman1')
+                                    transcription[4] = response_sher1
+                            for u in sherman2:
+                                if u in trans_clear.iloc[x]:
+                                    if 'Sherman2' in response_list:
+                                        break
+                                    response_sher2 = trans_clear.iloc[x]
+                                    response_list.append('Sherman2')
+                                    transcription[5] = response_sher2
+                            for v in brookshire:
+                                if v in trans_clear.iloc[x]:
+                                    if 'Brookshire' in response_list:
+                                        break
+                                    response_brook = trans_clear.iloc[x]
+                                    response_list.append('Brookshire')
+                                    transcription[6] = response_brook
+                        
+                        if len(trans_clear) != len(response_list):
+                            response_keyword_error.append([file])
+                        
+                        if (len(transcription[1])==0 and
+                            len(transcription[2])==0 and
+                            len(transcription[3])==0 and
+                            len(transcription[4])==0 and
+                            len(transcription[5])==0 and
+                            len(transcription[6])==0 and
+                            len(transcription[7])==0):
+                            transcr_resp_numb_error.append(file)
     
                 trans_df = pd.DataFrame(data=[transcription],
                                         columns=[col for col in
