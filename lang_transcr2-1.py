@@ -113,7 +113,7 @@ for file in lang_files:  # Iterate through every found excel file
         else:
             lang_items = lang_trans.index.tolist()
 
-            trans_clear = lang_trans.dropna(axis=0, how='all').fillna('')
+            trans_clear = lang_trans.fillna('')
             trans_clear = trans_clear.drop(trans_clear.columns[0], axis=1)
 
             if trans_clear.empty:
@@ -170,22 +170,22 @@ for file in lang_files:  # Iterate through every found excel file
                     transcr_response_error.append('response6')
 
                 transcription = [date, '', '', '', '', '', '', '']
-                if '1.' in str(response1.iloc[:, 0]):
-                    transcription[1] = response1.iloc[:, 0]
-                if '2.' in str(response2.iloc[:, 0]):
-                    transcription[2] = response2.iloc[:, 0]
-                if '3.' in str(response3.iloc[:, 0]):
-                    transcription[3] = response3.iloc[:, 0]
-                if '4.' in str(response4.iloc[:, 0]):
-                    transcription[4] = response4.iloc[:, 0]
-                if '5.' in str(response5.iloc[:, 0]):
-                    transcription[5] = response5.iloc[:, 0]
-                if '6.' in str(response6.iloc[:, 0]):
-                    transcription[6] = response6.iloc[:, 0]
+                if '1.' in str(response1.iloc[:, -1]):
+                    transcription[1] = response1.iloc[:, -1]
+                if '2.' in str(response2.iloc[:, -1]):
+                    transcription[2] = response2.iloc[:, -1]
+                if '3.' in str(response3.iloc[:, -1]):
+                    transcription[3] = response3.iloc[:, -1]
+                if '4.' in str(response4.iloc[:, -1]):
+                    transcription[4] = response4.iloc[:, -1]
+                if '5.' in str(response5.iloc[:, -1]):
+                    transcription[5] = response5.iloc[:, -1]
+                if '6.' in str(response6.iloc[:, -1]):
+                    transcription[6] = response6.iloc[:, -1]
                 
                 if len(transcr_response_error) > 0:
                     total_response_error.append([file, transcr_response_error])
-                    
+                
                 if (len(transcription[1])==0 and
                         len(transcription[2])==0 and
                         len(transcription[3])==0 and
